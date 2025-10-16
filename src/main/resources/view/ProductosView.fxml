@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="controller.ProductoController">
+    <top>
+        <Label text="Gestión de Productos - SideSeven" style="-fx-font-size: 18; -fx-padding: 10;"/>
+    </top>
+
+    <center>
+        <TableView fx:id="tablaProductos">
+            <columns>
+                <TableColumn text="ID" fx:id="colId" />
+                <TableColumn text="Nombre" fx:id="colNombre" />
+                <TableColumn text="Categoría" fx:id="colCategoria" />
+                <TableColumn text="Precio" fx:id="colPrecio" />
+                <TableColumn text="Stock" fx:id="colStock" />
+            </columns>
+        </TableView>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" alignment="center" style="-fx-padding: 10;">
+            <Button text="Añadir" onAction="#agregarProducto"/>
+            <Button text="Eliminar" onAction="#eliminarProducto"/>
+            <Button text="Actualizar" onAction="#actualizarProducto"/>
+            <Button text="Recargar" onAction="#listarProductos"/>
+        </HBox>
+    </bottom>
+</BorderPane>
