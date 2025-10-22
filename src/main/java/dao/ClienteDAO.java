@@ -7,14 +7,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClienteDAO {
+
     private static final String FILE_PATH = "data/clientes.csv";
 
-    public List<Cliente> leerClientes() throws FileNotFoundException {
+    public List<Cliente> leerClientes() {
         List<Cliente> lista = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(FILE_PATH))) {
+        File file = new File(FILE_PATH);
+
+        if (!file.exists()) {
+            try {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            } catch (IOException e) {
+                System.out.println("Error al crear el archivo de clientes: " + e.getMessage());
+                return lista;
+            }
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String linea;
-            while ((linea = br.readLine()) != null) {
+            while ((linea = br.readLine()) != null && !linea.isEmpty()) {
                 String[] datos = linea.split(",");
+                if (datos.length < 4) continue; // evita errores si la línea está incompleta
                 Cliente c = new Cliente(
                         Integer.parseInt(datos[0]),
                         datos[1],
@@ -23,22 +37,24 @@ public class ClienteDAO {
                 );
                 lista.add(c);
             }
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException | NumberFormatException e) {
+            System.out.println("Error al leer clientes: " + e.getMessage());
         }
-        return lista;
 
+        return lista;
     }
 
-    public void guardarClientes(List<Cliente> lista){
-        try(PrintWriter pw = new PrintWriter(new FileWriter(FILE_PATH))) {
-            for (Cliente c : lista) {
-                pw.println(c.getId() + "," + c.getNombre() + "," + c.getCorreo() + "," + c.getDireccion());
+    public void guardarClientes(List<Cliente> lista) {
+        File file = new File(FILE_PATH);
+        try {
+            file.getParentFile().mkdirs();
+            try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
+                for (Cliente c : lista) {
+                    pw.println(c.getId() + "," + c.getNombre() + "," + c.getCorreo() + "," + c.getDireccion());
+                }
             }
         } catch (IOException e) {
             System.out.println("Error al guardar clientes: " + e.getMessage());
         }
     }
-
 }
