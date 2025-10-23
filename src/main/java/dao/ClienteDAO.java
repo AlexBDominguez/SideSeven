@@ -27,14 +27,26 @@ public class ClienteDAO {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String linea;
             while ((linea = br.readLine()) != null && !linea.isEmpty()) {
-                String[] datos = linea.split(",");
-                if (datos.length < 4) continue; // evita errores si la línea está incompleta
+                String[] datos = linea.split(",", -1);
+                if (datos.length < 4) continue;
+
                 Cliente c = new Cliente(
                         Integer.parseInt(datos[0]),
                         datos[1],
-                        datos[2],
-                        datos[3]
+                        datos[2]
                 );
+
+                List<Integer> historial = new ArrayList<>();
+                if (!datos[3].isEmpty()) {
+                    String[] compras = datos[3].split(";");
+                    for (String s : compras) {
+                        try {
+                            historial.add(Integer.parseInt(s));
+                        } catch (NumberFormatException ignored) {}
+                    }
+                }
+                c.setHistorialCompras(historial);
+
                 lista.add(c);
             }
         } catch (IOException | NumberFormatException e) {
@@ -50,7 +62,8 @@ public class ClienteDAO {
             file.getParentFile().mkdirs();
             try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
                 for (Cliente c : lista) {
-                    pw.println(c.getId() + "," + c.getNombre() + "," + c.getCorreo() + "," + c.getDireccion());
+                    String historial = String.join(";", c.getHistorialCompras().stream().map(String::valueOf).toList());
+                    pw.println(c.getId() + "," + c.getNombre() + "," + c.getDireccion() + "," + historial);
                 }
             }
         } catch (IOException e) {
