@@ -19,6 +19,24 @@ public class ProductoService {
         return new ArrayList<>(productos);
     }
 
+    private int generarNuevoId() {
+        if (productos.isEmpty()) {
+            return 1;
+        }
+        return productos.stream()
+                .mapToInt(Producto::getId)
+                .max()
+                .orElse(0) + 1;
+    }
+
+    public void agregarProducto(String nombre, String categoria, double precio, int stock) {
+        int nuevoId = generarNuevoId();
+        Producto p = new Producto(nuevoId, nombre, categoria, precio, stock);
+        productos.add(p);
+        productoDAO.guardarProductos(productos);
+        System.out.println("✓ Producto agregado con ID: " + nuevoId);
+    }
+
     public void agregarProducto(Producto p) {
         if (buscarPorId(p.getId()) != null) {
             System.out.println("Error: Ya existe un producto con ese ID.");

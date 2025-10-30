@@ -2,10 +2,7 @@ package dao;
 
 import model.Venta;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -33,7 +30,6 @@ public class VentaDAO {
                 String[] datos = linea.split(",");
                 if (datos.length < 5) continue;
 
-                // suponer que datos[3] puede contener varios IDs de productos separados por ";"
                 List<Integer> productosIds = new ArrayList<>();
                 String[] ids = datos[3].split(";");
                 for (String s : ids) {
@@ -53,5 +49,20 @@ public class VentaDAO {
             System.out.println("Error al leer ventas: " + e.getMessage());
         }
         return lista;
+    }
+
+    public void guardarVentas(List<Venta> lista) {
+        File file = new File(FILE_PATH);
+        try {
+            file.getParentFile().mkdirs();
+            try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
+                for (Venta v : lista) {
+                    String productosIds = String.join(";", v.getIdsProductos().stream().map(String::valueOf).toList());
+                    pw.println(v.getId() + "," + v.getIdCliente() + "," + v.getFecha().getTime() + "," + productosIds + "," + v.getTotal());
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error al guardar ventas: " + e.getMessage());
+        }
     }
 }

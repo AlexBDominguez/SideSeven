@@ -6,7 +6,6 @@ import java.util.Scanner;
 
 public class ClienteUI {
 
-
     private final ClienteService clienteService = new ClienteService();
     private final Scanner scanner = new Scanner(System.in);
 
@@ -38,15 +37,12 @@ public class ClienteUI {
     }
 
     private void agregarCliente(){
-        System.out.println("ID: ");
-        int id = Integer.parseInt(scanner.nextLine());
-        System.out.println("Nombre: ");
+        System.out.print("Nombre: ");
         String nombre = scanner.nextLine();
-        System.out.println("Email: ");
+        System.out.print("Dirección: ");
         String direccion = scanner.nextLine();
 
-        clienteService.agregarCliente(new model.Cliente(id, nombre, direccion));
-        System.out.println("Cliente agregado.");
+        clienteService.agregarCliente(nombre, direccion);
     }
 
     private void buscarCliente() {
@@ -69,6 +65,18 @@ public class ClienteUI {
             System.out.println("Cliente no encontrado.");
             return;
         }
+
+        System.out.println("Cliente actual: " + cExistente);
+        System.out.print("Nuevo nombre (Enter para mantener): ");
+        String nombre = scanner.nextLine();
+        if (!nombre.isEmpty()) cExistente.setNombre(nombre);
+
+        System.out.print("Nueva dirección (Enter para mantener): ");
+        String direccion = scanner.nextLine();
+        if (!direccion.isEmpty()) cExistente.setDireccion(direccion);
+
+        clienteService.actualizarCliente(cExistente);
+        System.out.println("Cliente actualizado.");
     }
     private void eliminarCliente() {
         System.out.println("ID del cliente a eliminar: ");

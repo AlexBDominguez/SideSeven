@@ -1,6 +1,5 @@
 package model;
 
-
 import java.io.Serializable;
 
 public class Producto implements Serializable {
@@ -9,7 +8,6 @@ public class Producto implements Serializable {
     private String categoria;
     private double precio;
     private int stock;
-
 
     public Producto(int id, String nombre, String categoria, double precio, int stock) {
         this.id = id;
@@ -61,15 +59,8 @@ public class Producto implements Serializable {
 
     @Override
     public String toString() {
-        return "Producto{" +
-                "id=" + id +
-                ", nombre='" + nombre + '\'' +
-                ", categoria='" + categoria + '\'' +
-                ", precio=" + precio +
-                ", stock=" + stock +
-                '}';
+        return String.format("[Producto #%d] %s | Categoría: %s | Precio: %.2f€ | Stock: %d",
+                id, nombre, categoria, precio, stock);
     }
 }
-
-
 

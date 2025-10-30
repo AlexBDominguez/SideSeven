@@ -13,7 +13,7 @@ public class ProductoDAO {
     public List<Producto> leerProductos() {
         List<Producto> lista = new ArrayList<>();
         File file = new File(FILE_PATH);
-        if (!file.exists()) { // si no existe, lo crea
+        if (!file.exists()) { 
             try {
                 file.getParentFile().mkdirs();
                 file.createNewFile();
@@ -27,7 +27,7 @@ public class ProductoDAO {
             String linea;
             while ((linea = br.readLine()) != null && !linea.isEmpty()) {
                 String[] datos = linea.split(",");
-                if (datos.length < 5) continue; // evita errores si la línea está mal
+                if (datos.length < 5) continue; 
                 Producto p = new Producto(
                         Integer.parseInt(datos[0]),
                         datos[1],

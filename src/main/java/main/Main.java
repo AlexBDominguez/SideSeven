@@ -1,6 +1,5 @@
 package main;
 
-
 import app.consolaApp;
 
 public class Main{
@@ -12,6 +11,4 @@ public class Main{
     }
 
 }
-
-
 

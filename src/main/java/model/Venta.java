@@ -62,12 +62,8 @@ public class Venta implements Serializable {
 
     @Override
     public String toString() {
-        return "Venta{" +
-                "id=" + id +
-                ", idCliente=" + idCliente +
-                ", fecha=" + fecha +
-                ", idsProductos=" + idsProductos +
-                ", total=" + total +
-                '}';
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
+        return String.format("[Venta #%d] Cliente ID: %d | Fecha: %s | Productos: %s | Total: %.2f€",
+                id, idCliente, sdf.format(fecha), idsProductos, total);
     }
 }

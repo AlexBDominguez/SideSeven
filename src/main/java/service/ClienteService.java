@@ -19,6 +19,24 @@ public class ClienteService {
         return clientes;
     }
 
+    private int generarNuevoId() {
+        if (clientes.isEmpty()) {
+            return 1;
+        }
+        return clientes.stream()
+                .mapToInt(Cliente::getId)
+                .max()
+                .orElse(0) + 1;
+    }
+
+    public void agregarCliente(String nombre, String direccion) {
+        int nuevoId = generarNuevoId();
+        Cliente c = new Cliente(nuevoId, nombre, direccion);
+        clientes.add(c);
+        clienteDAO.guardarClientes(clientes);
+        System.out.println("✓ Cliente agregado con ID: " + nuevoId);
+    }
+
     public void agregarCliente(Cliente c) {
         clientes.add(c);
         clienteDAO.guardarClientes(clientes);

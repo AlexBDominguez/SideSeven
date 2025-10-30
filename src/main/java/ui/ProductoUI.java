@@ -8,8 +8,7 @@ import java.util.Scanner;
 public class ProductoUI {
 
     private final ProductoService productoService = new ProductoService();
-    private final Scanner scanner = new Scanner(;
-
+    private final Scanner scanner = new Scanner(System.in);
 
     public void mostrarMenu(){
         int opcion;
@@ -38,19 +37,16 @@ public class ProductoUI {
     }
 
     private void agregarProducto(){
-        System.out.println("ID: ");
-        int id = Integer.parseInt(scanner.nextLine());
-        System.out.println("Nombre: ");
+        System.out.print("Nombre: ");
         String nombre = scanner.nextLine();
-        System.out.println("Categoría: ");
+        System.out.print("Categoría (Manga/Comic/Rol/Figura): ");
         String categoria = scanner.nextLine();
-        System.out.println("Precio: ");
-        double precio = Double.parseDouble(scanner.nextLine());
-        System.out.println("Stock: ");
-        int stock = Integer.parseInt(scanner.nextLine());
+        System.out.print("Precio: ");
+        double precio = leerDouble();
+        System.out.print("Stock: ");
+        int stock = leerEntero();
 
-        productoService.agregarProducto(new Producto(id, nombre, categoria, precio, stock));
-        System.out.println("Producto agregado.");
+        productoService.agregarProducto(nombre, categoria, precio, stock);
     }
 
     private void buscarProducto() {
@@ -73,6 +69,26 @@ public class ProductoUI {
             System.out.println("No se encontró producto con ID: " + id);
             return;
         }
+
+        System.out.println("Producto actual: " + pExistente);
+        System.out.print("Nuevo nombre (Enter para mantener): ");
+        String nombre = scanner.nextLine();
+        if (!nombre.isEmpty()) pExistente.setNombre(nombre);
+
+        System.out.print("Nueva categoría (Enter para mantener): ");
+        String categoria = scanner.nextLine();
+        if (!categoria.isEmpty()) pExistente.setCategoria(categoria);
+
+        System.out.print("Nuevo precio (0 para mantener): ");
+        double precio = leerDouble();
+        if (precio > 0) pExistente.setPrecio(precio);
+
+        System.out.print("Nuevo stock (-1 para mantener): ");
+        int stock = leerEntero();
+        if (stock >= 0) pExistente.setStock(stock);
+
+        productoService.actualizarProducto(pExistente);
+        System.out.println("Producto actualizado.");
     }
     private void eliminarProducto () {
         System.out.println("ID del producto a eliminar: ");
@@ -102,5 +118,4 @@ public class ProductoUI {
     }
 
 }
-
 

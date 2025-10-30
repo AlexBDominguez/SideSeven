@@ -34,11 +34,8 @@ public class Cliente implements Serializable {
 
     @Override
     public String toString() {
-        return "Cliente{" +
-                "id=" + id +
-                ", nombre='" + nombre + '\'' +
-                ", direccion='" + direccion + '\'' +
-                ", historialCompras=" + historialCompras +
-                '}';
+        String compras = historialCompras.isEmpty() ? "Sin compras" : "Compras: " + historialCompras;
+        return String.format("[Cliente #%d] %s | Dirección: %s | %s",
+                id, nombre, direccion, compras);
     }
 }

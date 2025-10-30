@@ -37,3 +37,11 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Project Specific ###
+# Archivos CSV de datos (Fase 1)
+data/
+*.csv
+
+# No subir configuración de BD con contraseñas
+# IMPORTANTE: Revisar DatabaseConnection.java antes de hacer commit
