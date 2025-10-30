@@ -230,13 +230,13 @@ El sistema implementa manejo robusto de errores:
 
 ## 👥 Autor
 
-Proyecto desarrollado para el curso de Programación - Sistema de Gestión Empresarial
+Proyecto desarrollado para FP Superior Dual UDAM 2 - Acceso a Datos
 
 ## 📄 Licencia
 
 Este proyecto es de uso educativo.
 
-## 🔄 Próximas Mejoras
+## 🔄 Posibles Mejoras
 
 - [ ] Interfaz gráfica con JavaFX
 - [ ] Reportes y estadísticas
