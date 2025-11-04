@@ -228,10 +228,9 @@ El sistema implementa manejo robusto de errores:
 - Mensajes de error descriptivos
 - Rollback de transacciones en caso de fallo
 
-## 👥 Autor
+## 👥 Proyecto
 
 Proyecto desarrollado para FP Superior Dual UDAM 2 - Acceso a Datos
-por Alexandre Barbeito Domínguez
 
 ## 📄 Licencia
 
