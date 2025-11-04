@@ -16,8 +16,8 @@ public class consolaApp {
     private final ClienteService clienteService = new ClienteService();
     private final VentaService ventaService = new VentaService(productoService, clienteService);
     
-    private final ProductoUI productoUI = new ProductoUI();
-    private final ClienteUI clienteUI = new ClienteUI();
+    private final ProductoUI productoUI = new ProductoUI(productoService);
+    private final ClienteUI clienteUI = new ClienteUI(clienteService);
     private final VentaUI ventaUI = new VentaUI(ventaService);
     private final Scanner scanner = new Scanner(System.in);
 

@@ -28,7 +28,14 @@ public class VentaUI {
             opcion = leerEntero();
 
             switch (opcion) {
-                case 1 -> listarVentas();
+                case 1 ->{
+                    var ventas = service.listarVentas();
+                    if (ventas.isEmpty()) {
+                        System.out.println("No hay ventas registradas.");
+                    } else{
+                        ventas.forEach(System.out::println);
+                    }
+                }
                 case 2 -> registrarVenta();
                 case 3 -> buscarVenta();
                 case 0 -> System.out.println("Volviendo...");

@@ -2,13 +2,16 @@ package ui;
 
 import model.Producto;
 import service.ProductoService;
-
 import java.util.Scanner;
 
 public class ProductoUI {
 
-    private final ProductoService productoService = new ProductoService();
+    private final ProductoService productoService;
     private final Scanner scanner = new Scanner(System.in);
+
+    public ProductoUI(ProductoService productoService){
+        this.productoService = productoService;
+    }
 
     public void mostrarMenu(){
         int opcion;
@@ -25,7 +28,14 @@ public class ProductoUI {
             opcion = Integer.parseInt(scanner.nextLine());
 
             switch (opcion) {
-                case 1 -> productoService.listarProductos().forEach(System.out::println);
+                case 1 ->{
+                    var productos = productoService.listarProductos();
+                        if (productos.isEmpty()) {
+                            System.out.println("No hay productos disponibles.");
+                        } else {
+                            productos.forEach(System.out::println);
+                        }
+                }
                 case 2 -> agregarProducto();
                 case 3 -> buscarProducto();
                 case 4 -> actualizarProducto();

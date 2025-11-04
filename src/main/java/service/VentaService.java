@@ -33,6 +33,8 @@ public class VentaService {
                 .orElse(0) + 1;
     }
 
+
+
     public void registrarVenta(int idCliente, List<Integer> idsProductos) {
         int nuevoId = generarNuevoId();
         registrarVentaConId(nuevoId, idCliente, idsProductos);

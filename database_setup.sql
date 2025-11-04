@@ -68,9 +68,9 @@ INSERT INTO productos (id, nombre, categoria, precio, stock) VALUES
 
 -- Clientes de ejemplo
 INSERT INTO clientes (id, nombre, direccion) VALUES
-(1, 'Juan Pérez', 'Calle Mayor 123, Madrid'),
-(2, 'María García', 'Avenida Libertad 45, Barcelona'),
-(3, 'Carlos López', 'Plaza España 7, Valencia');
+(1, 'Martín Sánchez', 'Calle Mayor 123, Madrid'),
+(2, 'Nuria Calo', 'Avenida Libertad 45, Barcelona'),
+(3, 'Leo Ces', 'Plaza España 7, Valencia');
 
 -- Mostrar las tablas creadas
 SHOW TABLES;

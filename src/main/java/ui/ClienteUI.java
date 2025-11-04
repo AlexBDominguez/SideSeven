@@ -6,13 +6,17 @@ import java.util.Scanner;
 
 public class ClienteUI {
 
-    private final ClienteService clienteService = new ClienteService();
+    private final ClienteService clienteService;
     private final Scanner scanner = new Scanner(System.in);
 
-    public void mostrarMenu(){
+    public ClienteUI(ClienteService clienteService) {
+        this.clienteService = clienteService;
+    }
+
+    public void mostrarMenu() {
         int opcion;
 
-        do{
+        do {
             System.out.println("\n--- Clientes ---");
             System.out.println("1. Listar");
             System.out.println("2. Agregar");
@@ -24,7 +28,14 @@ public class ClienteUI {
             opcion = Integer.parseInt(scanner.nextLine());
 
             switch (opcion) {
-                case 1 -> clienteService.listarClientes().forEach(System.out::println);
+                case 1 -> {
+                    var clientes = clienteService.listarClientes();
+                    if (clientes.isEmpty()) {
+                        System.out.println("No hay clientes registrados.");
+                    } else {
+                        clientes.forEach(System.out::println);
+                    }
+                }
                 case 2 -> agregarCliente();
                 case 3 -> buscarCliente();
                 case 4 -> actualizarCliente();
@@ -32,11 +43,11 @@ public class ClienteUI {
                 default -> System.out.println("Opción no válida.");
             }
 
-        }while(opcion!=0);
+        } while (opcion != 0);
 
     }
 
-    private void agregarCliente(){
+    private void agregarCliente() {
         System.out.print("Nombre: ");
         String nombre = scanner.nextLine();
         System.out.print("Dirección: ");
@@ -78,6 +89,7 @@ public class ClienteUI {
         clienteService.actualizarCliente(cExistente);
         System.out.println("Cliente actualizado.");
     }
+
     private void eliminarCliente() {
         System.out.println("ID del cliente a eliminar: ");
         int id = Integer.parseInt(scanner.nextLine());

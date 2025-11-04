@@ -9,6 +9,5 @@ public class Main{
          consolaApp app = new consolaApp();
          app.iniciar();
     }
-
 }
 
