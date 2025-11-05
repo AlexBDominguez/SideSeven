@@ -1,9 +1,9 @@
 package app;
 
 import db.MigracionDatos;
-import service.ClienteService;
-import service.ProductoService;
-import service.VentaService;
+import ventaService.ClienteService;
+import ventaService.ProductoService;
+import ventaService.VentaService;
 import ui.ClienteUI;
 import ui.ProductoUI;
 import ui.VentaUI;

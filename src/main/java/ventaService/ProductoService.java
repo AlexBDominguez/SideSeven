@@ -1,6 +1,7 @@
-package service;
+package ventaService;
 
 import dao.ProductoDAO;
+import dao.ProductoDAODB;
 import model.Producto;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.List;
 public class ProductoService {
 
     private final ProductoDAO productoDAO = new ProductoDAO();
+    private final ProductoDAODB productoDAODB = new ProductoDAODB();
     private final List<Producto> productos = new ArrayList<>();
 
     public ProductoService() {
@@ -30,6 +32,27 @@ public class ProductoService {
     }
 
     public void agregarProducto(String nombre, String categoria, double precio, int stock) {
+
+        List<String> errores = new ArrayList<>();
+
+        if (nombre == null || nombre.trim().isEmpty()) {
+            errores.add("❌ Error: El nombre del producto no puede estar vacío.");
+        }
+
+        if(precio <= 0) {
+            errores.add("❌ Error: El precio debe ser mayor que 0.");
+        }
+
+        if(stock < 0) {
+            errores.add("❌ Error: El stock no puede ser negativo.");
+        }
+
+        if (!errores.isEmpty()) {
+            System.out.println("❌ No se pudo agregar el producto por los siguientes errores:");
+            errores.forEach(e-> System.out.println("  - " + e));
+            return;
+        }
+
         int nuevoId = generarNuevoId();
         Producto p = new Producto(nuevoId, nombre, categoria, precio, stock);
         productos.add(p);
@@ -39,7 +62,7 @@ public class ProductoService {
 
     public void agregarProducto(Producto p) {
         if (buscarPorId(p.getId()) != null) {
-            System.out.println("Error: Ya existe un producto con ese ID.");
+            System.out.println("❌ Error: Ya existe un producto con ese ID.");
             return;
         }
         productos.add(p);
@@ -51,7 +74,7 @@ public class ProductoService {
         if (eliminado) {
             productoDAO.guardarProductos(productos);
         } else {
-            System.out.println("No se encontró producto con ID: " + id);
+            System.out.println("⚠️ No se encontró producto con ID: " + id);
         }
     }
 
@@ -70,6 +93,14 @@ public class ProductoService {
                 return;
             }
         }
-        System.out.println("No se encontró producto con ID: " + pNuevo.getId());
+        System.out.println("⚠️ No se encontró producto con ID: " + pNuevo.getId());
+    }
+
+    public List<Producto> listarProductosCSV(){
+        return productoDAO.leerProductos();
+    }
+
+    public List<Producto> listarProductosDB(){
+        return productoDAODB.leerProductos();
     }
 }

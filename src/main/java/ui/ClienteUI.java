@@ -1,6 +1,6 @@
 package ui;
 
-import service.ClienteService;
+import ventaService.ClienteService;
 
 import java.util.Scanner;
 
@@ -29,11 +29,24 @@ public class ClienteUI {
 
             switch (opcion) {
                 case 1 -> {
-                    var clientes = clienteService.listarClientes();
-                    if (clientes.isEmpty()) {
-                        System.out.println("No hay clientes registrados.");
+                    System.out.println("\n¿Desde dónde quieres listar los clientes?");
+                    System.out.println("1. CSV");
+                    System.out.println("2. Base de Datos");
+                    System.out.print("Elige una opción: ");
+                    int fuente = leerEntero();
+
+                    if (fuente == 1) {
+                        var clientes = clienteService.listarClientesCSV();
+                        if (clientes.isEmpty()) System.out.println("No hay clientes en CSV.");
+                        else clientes.forEach(System.out::println);
+
+                    } else if (fuente == 2) {
+                        var clientes = clienteService.listarClientesDB();
+                        if (clientes.isEmpty()) System.out.println("No hay clientes en Base de Datos.");
+                        else clientes.forEach(System.out::println);
+
                     } else {
-                        clientes.forEach(System.out::println);
+                        System.out.println("Opción no válida.");
                     }
                 }
                 case 2 -> agregarCliente();

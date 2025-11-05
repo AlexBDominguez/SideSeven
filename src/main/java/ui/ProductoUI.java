@@ -1,7 +1,7 @@
 package ui;
 
 import model.Producto;
-import service.ProductoService;
+import ventaService.ProductoService;
 import java.util.Scanner;
 
 public class ProductoUI {
@@ -28,13 +28,27 @@ public class ProductoUI {
             opcion = Integer.parseInt(scanner.nextLine());
 
             switch (opcion) {
-                case 1 ->{
-                    var productos = productoService.listarProductos();
-                        if (productos.isEmpty()) {
-                            System.out.println("No hay productos disponibles.");
-                        } else {
-                            productos.forEach(System.out::println);
-                        }
+                case 1 -> {
+                    System.out.println("\n¿Desde dónde quieres listar los productos?");
+                    System.out.println("1. CSV");
+                    System.out.println("2. Base de Datos");
+                    System.out.print("Elige una opción: ");
+
+                    int fuente = leerEntero();
+
+                    if (fuente == 1) {
+                        var productos = productoService.listarProductosCSV();
+                        if (productos.isEmpty()) System.out.println("No hay productos en CSV");
+                        else productos.forEach(System.out::println);
+
+                    } else if (fuente == 2) {
+                        var productos = productoService.listarProductosDB();
+                        if (productos.isEmpty()) System.out.println("No hay productos en Base de Datos");
+                        else productos.forEach(System.out::println);
+                    } else {
+                        System.out.println("Opción no válida.");
+
+                    }
                 }
                 case 2 -> agregarProducto();
                 case 3 -> buscarProducto();

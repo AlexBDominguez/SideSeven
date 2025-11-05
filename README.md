@@ -72,7 +72,7 @@ SideSeven/
 │   │   ├── Producto.java            # Entidad Producto
 │   │   ├── Cliente.java             # Entidad Cliente
 │   │   └── Venta.java               # Entidad Venta
-│   ├── service/
+│   ├── ventaService/
 │   │   ├── ProductoService.java     # Lógica de negocio
 │   │   ├── ClienteService.java      # Lógica de negocio
 │   │   └── VentaService.java        # Lógica de negocio

@@ -1,7 +1,7 @@
 package ui;
 
 import model.Venta;
-import service.VentaService;
+import ventaService.VentaService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,11 +9,11 @@ import java.util.Scanner;
 
 public class VentaUI {
 
-    private final VentaService service;
+    private final VentaService ventaService;
     private final Scanner scanner = new Scanner(System.in);
 
-    public VentaUI(VentaService service) {
-        this.service = service;
+    public VentaUI(VentaService ventaService) {
+        this.ventaService = ventaService;
     }
 
     public void mostrarMenu() {
@@ -28,12 +28,25 @@ public class VentaUI {
             opcion = leerEntero();
 
             switch (opcion) {
-                case 1 ->{
-                    var ventas = service.listarVentas();
-                    if (ventas.isEmpty()) {
-                        System.out.println("No hay ventas registradas.");
-                    } else{
-                        ventas.forEach(System.out::println);
+                case 1 -> {
+                    System.out.println("\n¿Desde dónde quieres listar las ventas?");
+                    System.out.println("1. CSV");
+                    System.out.println("2. Base de Datos");
+                    System.out.print("Elige una opción: ");
+                    int fuente = leerEntero();
+
+                    if (fuente == 1) {
+                        var ventas = ventaService.listarVentasCSV();
+                        if (ventas.isEmpty()) System.out.println("No hay ventas en CSV.");
+                        else ventas.forEach(System.out::println);
+
+                    } else if (fuente == 2) {
+                        var ventas = ventaService.listarVentasDB();
+                        if (ventas.isEmpty()) System.out.println("No hay ventas en Base de Datos.");
+                        else ventas.forEach(System.out::println);
+
+                    } else {
+                        System.out.println("Opción no válida.");
                     }
                 }
                 case 2 -> registrarVenta();
@@ -44,11 +57,7 @@ public class VentaUI {
         } while (opcion != 0);
     }
 
-    private void listarVentas() {
-        service.listarVentas().forEach(System.out::println);
-    }
-
-    private void registrarVenta() {
+        private void registrarVenta() {
 
         System.out.print("ID del cliente: "); int idCliente = leerEntero();
 
@@ -65,12 +74,12 @@ public class VentaUI {
             return;
         }
 
-        service.registrarVenta(idCliente, idsProductos);
+        ventaService.registrarVenta(idCliente, idsProductos);
     }
 
     private void buscarVenta() {
         System.out.print("ID de la venta a buscar: "); int id = leerEntero();
-        Venta v = service.buscarPorId(id);
+        Venta v = ventaService.buscarPorId(id);
         if (v != null) System.out.println(v);
         else System.out.println("Venta no encontrada.");
     }
