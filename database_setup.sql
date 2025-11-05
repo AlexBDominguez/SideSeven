@@ -59,18 +59,18 @@ CREATE TABLE historial_compras (
 
 -- Insertar datos de ejemplo (opcional)
 -- Productos de ejemplo
-INSERT INTO productos (id, nombre, categoria, precio, stock) VALUES
-(1, 'One Piece Vol. 1', 'Manga', 8.99, 50),
-(2, 'Batman: The Dark Knight', 'Comic', 15.99, 30),
-(3, 'Dungeons & Dragons - Manual del Jugador', 'Rol', 49.99, 20),
-(4, 'Figura Naruto Uzumaki', 'Figura', 29.99, 15),
-(5, 'Attack on Titan Vol. 1', 'Manga', 9.99, 40);
+INSERT INTO productos (nombre, categoria, precio, stock) VALUES
+('One Piece Vol. 1', 'Manga', 8.99, 50),
+('Batman: The Dark Knight', 'Comic', 15.99, 30),
+('Dungeons & Dragons - Manual del Jugador', 'Rol', 49.99, 20),
+('Figura Naruto Uzumaki', 'Figura', 29.99, 15),
+('Attack on Titan Vol. 1', 'Manga', 9.99, 40);
 
 -- Clientes de ejemplo
-INSERT INTO clientes (id, nombre, direccion) VALUES
-(1, 'Martín Sánchez', 'Calle Mayor 123, Madrid'),
-(2, 'Nuria Calo', 'Avenida Libertad 45, Barcelona'),
-(3, 'Leo Ces', 'Plaza España 7, Valencia');
+INSERT INTO clientes (nombre, direccion) VALUES
+('Martín Sánchez', 'Calle Mayor 123, Madrid'),
+('Nuria Calo', 'Avenida Libertad 45, Barcelona'),
+('Leo Ces', 'Plaza España 7, Valencia');
 
 -- Mostrar las tablas creadas
 SHOW TABLES;
