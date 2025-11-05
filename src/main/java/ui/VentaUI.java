@@ -4,6 +4,7 @@ import model.Venta;
 import ventaService.VentaService;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
@@ -19,75 +20,78 @@ public class VentaUI {
     public void mostrarMenu() {
         int opcion;
         do {
-            System.out.println("\n--- Ventas ---");
-            System.out.println("1. Listar");
-            System.out.println("2. Registrar");
-            System.out.println("3. Buscar venta por ID");
-            System.out.println("0. Volver");
+            System.out.println("\n=== GESTIÓN DE VENTAS ===");
+            System.out.println("1. Listar ventas");
+            System.out.println("2. Registrar venta");
+            System.out.println("3. Eliminar venta");
+            System.out.println("0. Volver al menú principal");
             System.out.print("Elige una opción: ");
             opcion = leerEntero();
 
             switch (opcion) {
-                case 1 -> {
-                    System.out.println("\n¿Desde dónde quieres listar las ventas?");
-                    System.out.println("1. CSV");
-                    System.out.println("2. Base de Datos");
-                    System.out.print("Elige una opción: ");
-                    int fuente = leerEntero();
-
-                    if (fuente == 1) {
-                        var ventas = ventaService.listarVentasCSV();
-                        if (ventas.isEmpty()) System.out.println("No hay ventas en CSV.");
-                        else ventas.forEach(System.out::println);
-
-                    } else if (fuente == 2) {
-                        var ventas = ventaService.listarVentasDB();
-                        if (ventas.isEmpty()) System.out.println("No hay ventas en Base de Datos.");
-                        else ventas.forEach(System.out::println);
-
-                    } else {
-                        System.out.println("Opción no válida.");
-                    }
-                }
+                case 1 -> listarVentas();
                 case 2 -> registrarVenta();
-                case 3 -> buscarVenta();
-                case 0 -> System.out.println("Volviendo...");
+                case 3 -> eliminarVenta();
+                case 0 -> System.out.println("Volviendo al menú principal...");
                 default -> System.out.println("Opción no válida.");
             }
         } while (opcion != 0);
     }
 
-        private void registrarVenta() {
-
-        System.out.print("ID del cliente: "); int idCliente = leerEntero();
-
-        List<Integer> idsProductos = new ArrayList<>();
-        while (true) {
-            System.out.print("ID de producto a añadir (0 para terminar): ");
-            int idProd = leerEntero();
-            if (idProd == 0) break;
-            idsProductos.add(idProd);
+    private void listarVentas() {
+        List<Venta> ventas = ventaService.listarVentas();
+        if (ventas.isEmpty()) {
+            System.out.println("No hay ventas registradas.");
+        } else {
+            System.out.println("\n--- LISTA DE VENTAS ---");
+            ventas.forEach(System.out::println);
         }
-
-        if (idsProductos.isEmpty()) {
-            System.out.println("No se puede registrar una venta sin productos.");
-            return;
-        }
-
-        ventaService.registrarVenta(idCliente, idsProductos);
     }
 
-    private void buscarVenta() {
-        System.out.print("ID de la venta a buscar: "); int id = leerEntero();
-        Venta v = ventaService.buscarPorId(id);
-        if (v != null) System.out.println(v);
-        else System.out.println("Venta no encontrada.");
+    private void registrarVenta() {
+        System.out.print("ID del cliente: ");
+        int idCliente = leerEntero();
+
+        List<Integer> productos = new ArrayList<>();
+        System.out.println("Introduce los IDs de los productos (0 para finalizar):");
+        while (true) {
+            int idProd = leerEntero();
+            if (idProd == 0) break;
+            productos.add(idProd);
+        }
+
+        System.out.print("Total de la venta (€): ");
+        double total = leerDouble();
+
+        Venta venta = new Venta(0, idCliente, new Date(), productos, total);
+        ventaService.registrarVenta(venta);
+        System.out.println("✅ Venta registrada correctamente.");
+    }
+
+    private void eliminarVenta() {
+        System.out.print("ID de la venta a eliminar: ");
+        int id = leerEntero();
+        ventaService.eliminarVenta(id);
+        System.out.println("✅ Venta eliminada correctamente (si existía).");
     }
 
     private int leerEntero() {
         while (true) {
-            try { return Integer.parseInt(scanner.nextLine()); }
-            catch (NumberFormatException e) { System.out.print("Introduce un número válido: "); }
+            try {
+                return Integer.parseInt(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.print("Introduce un número válido: ");
+            }
+        }
+    }
+
+    private double leerDouble() {
+        while (true) {
+            try {
+                return Double.parseDouble(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.print("Introduce un número válido: ");
+            }
         }
     }
 }

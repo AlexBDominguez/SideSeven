@@ -1,0 +1,20 @@
+- Demasiados prints repetitivos:
+
+"=== GESTIÓN DE PRODUCTOS ===
+ 1. Listar productos
+ 2. Agregar producto
+ 3. Actualizar producto
+ 4. Eliminar producto
+ 0. Volver al menú principal
+ Elige una opción: 4
+ ID del producto a eliminar: 9
+ Conexión a la base de datos establecida correctamente.
+ Conexión a la base de datos establecida correctamente.
+ Producto eliminado de la BD.
+ Producto eliminado:
+ ✅ Producto eliminado correctamente (si existía)."
+
+ - Hacer más comprobaciones de agregar y quitar.
+ - Quizá volcar la BBDD al CSV
+ - Al entrar al menú y poder escoger CSV o BBDD, que tenga la posibilidad de volver a atrás, a esa pregunta.
+

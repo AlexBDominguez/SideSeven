@@ -2,97 +2,110 @@ package ventaService;
 
 import dao.VentaDAO;
 import dao.VentaDAODB;
-import model.Producto;
 import model.Venta;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class VentaService {
 
     private final VentaDAO ventaDAO = new VentaDAO();
+    private final VentaDAODB ventaDAODB = new VentaDAODB();
+
     private final ProductoService productoService;
     private final ClienteService clienteService;
-    private final List<Venta> ventas = new ArrayList<>();
+
+    private boolean usarBD = false;
 
     public VentaService(ProductoService productoService, ClienteService clienteService) {
         this.productoService = productoService;
         this.clienteService = clienteService;
-        ventas.addAll(ventaDAO.leerVentas());
+    }
+
+    public void setUsarBD(boolean usarBD) {
+        this.usarBD = usarBD;
     }
 
     public List<Venta> listarVentas() {
-        return new ArrayList<>(ventas);
+        return usarBD ? ventaDAODB.leerVentas() : ventaDAO.leerVentas();
     }
 
-    private int generarNuevoId() {
-        if (ventas.isEmpty()) {
-            return 1;
-        }
-        return ventas.stream()
-                .mapToInt(Venta::getId)
-                .max()
-                .orElse(0) + 1;
-    }
+    public void registrarVenta(Venta venta) {
+        List<String> errores = validarVenta(venta);
 
-    public void registrarVenta(int idCliente, List<Integer> idsProductos) {
-        List<String> errores = new ArrayList<>();
-
-        if(clienteService.buscarPorId(idCliente)==null){
-            errores.add("❌ Error: El cliente con ID " + idCliente + " no existe.");
-        }
-        if(idsProductos == null || idsProductos.isEmpty()){
-            errores.add("❌ Error: Debes seleccionar al menos un producto para la venta.");
-        }else{
-            for (int idProd : idsProductos) {
-                Producto p = productoService.buscarPorId(idProd);
-                if (p == null) {
-                    errores.add("❌ Error: El producto con ID " + idProd + " no existe.");
-                } else if (p.getStock() <= 0) {
-                    errores.add("❌ Error: No hay stock disponible para el producto: " + p.getNombre());
-                }
-            }
-        }
-        if(!errores.isEmpty()){
-            System.out.println("❌ No se pudo registrar la venta por los siguientes errores:");
-            errores.forEach(e-> System.out.println("  - " + e));
+        if (!errores.isEmpty()) {
+            System.err.println("❌ No se pudo registrar la venta. Se encontraron los siguientes errores:");
+            errores.forEach(e -> System.err.println("  - " + e));
             return;
         }
 
-        double total = 0.0;
-        for (int idProd : idsProductos) {
-            Producto p = productoService.buscarPorId(idProd);
-            total += p.getPrecio();
-            p.setStock(p.getStock() - 1);
-            productoService.actualizarProducto(p);
+        if (usarBD) {
+            ventaDAODB.guardarVenta(venta);
+        } else {
+            List<Venta> lista = ventaDAO.leerVentas();
+            lista.add(venta);
+            ventaDAO.guardarVentas(lista);
         }
 
-        int nuevoId = generarNuevoId();
-        Venta v = new Venta(nuevoId, idCliente, new Date(), idsProductos, total);
-        ventas.add(v);
-        ventaDAO.guardarVentas(ventas);
-        clienteService.agregarVentaCliente(idCliente, nuevoId);
-        System.out.println("✓ Venta registrada con ID: " + nuevoId + " - Total: " + total + "€");
-
+        System.out.println("✅ Venta registrada correctamente (Cliente ID: " + venta.getIdCliente() + ")");
     }
 
+    public void eliminarVenta(int id) {
+        Venta existente = buscarVentaPorId(id);
+        if (existente == null) {
+            System.err.println("❌ No existe una venta con ID " + id);
+            return;
+        }
 
-    public Venta buscarPorId(int id) {
-        for (Venta v : ventas) {
-            if (v.getId() == id) {
-                return v;
+        if (usarBD) {
+            System.err.println("⚠️ Eliminar venta no implementado en BD aún.");
+        } else {
+            List<Venta> lista = ventaDAO.leerVentas();
+            lista.removeIf(v -> v.getId() == id);
+            ventaDAO.guardarVentas(lista);
+        }
+
+        System.out.println("Venta eliminada (ID " + id + ")");
+    }
+
+    public Venta buscarVentaPorId(int id) {
+        if (usarBD) {
+            return ventaDAODB.buscarPorId(id);
+        } else {
+            return ventaDAO.leerVentas()
+                    .stream()
+                    .filter(v -> v.getId() == id)
+                    .findFirst()
+                    .orElse(null);
+        }
+    }
+
+    private List<String> validarVenta(Venta venta) {
+        List<String> errores = new ArrayList<>();
+
+        if (venta == null) {
+            errores.add("La venta no puede ser nula.");
+            return errores;
+        }
+
+        if (clienteService.buscarClientePorId(venta.getIdCliente()) == null) {
+            errores.add("El cliente con ID " + venta.getIdCliente() + " no existe.");
+        }
+
+        if (venta.getIdsProductos() == null || venta.getIdsProductos().isEmpty()) {
+            errores.add("La venta debe incluir al menos un producto.");
+        } else {
+            for (int idProd : venta.getIdsProductos()) {
+                if (productoService.buscarProductoPorId(idProd) == null) {
+                    errores.add("El producto con ID " + idProd + " no existe.");
+                }
             }
         }
-        return null;
-    }
 
-    public List<Venta> listarVentasCSV() {
-        return ventaDAO.leerVentas();
-    }
+        if (venta.getTotal() <= 0) {
+            errores.add("El total de la venta debe ser mayor a 0.");
+        }
 
-    public List<Venta> listarVentasDB() {
-        VentaDAODB ventaDAODB = new VentaDAODB();
-        return ventaDAODB.leerVentas();
+        return errores;
     }
 }

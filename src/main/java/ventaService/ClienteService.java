@@ -10,116 +10,121 @@ import java.util.List;
 public class ClienteService {
 
     private final ClienteDAO clienteDAO = new ClienteDAO();
-    private final List<Cliente> clientes = new ArrayList<>();
+    private final ClienteDAODB clienteDAODB = new ClienteDAODB();
 
-    public ClienteService() {
-        clientes.addAll(clienteDAO.leerClientes());
+    private boolean usarBD = false;
+
+    public void setUsarBD(boolean usarBD) {
+        this.usarBD = usarBD;
     }
 
     public List<Cliente> listarClientes() {
-        return clientes;
+        return usarBD ? clienteDAODB.leerClientes() : clienteDAO.leerClientes();
     }
 
-    private int generarNuevoId() {
-        if (clientes.isEmpty()) {
-            return 1;
-        }
-        return clientes.stream()
-                .mapToInt(Cliente::getId)
-                .max()
-                .orElse(0) + 1;
-    }
+    public void agregarCliente(Cliente cliente) {
+        List<String> errores = validarCliente(cliente, false);
 
-    public void agregarCliente(String nombre, String direccion) {
-        List<String> errores = new ArrayList<>();
-        if (nombre == null || nombre.trim().isEmpty()) {
-            errores.add("❌ Error: El nombre del cliente no puede estar vacío.");
-        }
-
-        if (direccion == null || direccion.trim().isEmpty()) {
-            errores.add("❌ Error: La dirección no puede estar vacía.");
-        }
-
-        if(!errores.isEmpty()){
-            System.out.println("❌ No se pudo agregar el cliente por los siguientes errores:");
-            errores.forEach(e-> System.out.println("  - " + e));
+        if (!errores.isEmpty()) {
+            System.err.println("❌ No se pudo agregar el cliente. Se encontraron los siguientes errores:");
+            errores.forEach(e -> System.err.println("  - " + e));
             return;
         }
 
-        int nuevoId = generarNuevoId();
-        Cliente c = new Cliente(nuevoId, nombre.trim(), direccion.trim());
-        clientes.add(c);
-        clienteDAO.guardarClientes(clientes);
-        System.out.println("✓ Cliente agregado con ID: " + nuevoId);
-    }
-
-    public void agregarCliente(Cliente c) {
-        if (c == null) {
-            System.out.println("❌ Error: El cliente no puede ser nulo.");
-            return;
+        if (usarBD) {
+            clienteDAODB.guardarCliente(cliente);
+        } else {
+            List<Cliente> lista = clienteDAO.leerClientes();
+            lista.add(cliente);
+            clienteDAO.guardarClientes(lista);
         }
-        clientes.add(c);
-        clienteDAO.guardarClientes(clientes);
+
+        System.out.println("✅ Cliente agregado correctamente: " + cliente.getNombre());
     }
 
-    public Cliente buscarPorId(int id) {
-        return clientes.stream()
-                .filter(c -> c.getId() == id)
-                .findFirst()
-                .orElse(null);
-    }
+    public void actualizarCliente(Cliente cliente) {
+        List<String> errores = validarCliente(cliente, true);
 
-    public void actualizarCliente(Cliente cNuevo) {
-        if (cNuevo == null) {
-            System.out.println("❌ Error: Cliente no válido.");
+        if (!errores.isEmpty()) {
+            System.err.println("❌ No se pudo actualizar el cliente. Se encontraron los siguientes errores:");
+            errores.forEach(e -> System.err.println("  - " + e));
             return;
         }
 
-        boolean encontrado = false;
-        for (int i = 0; i < clientes.size(); i++) {
-            if (clientes.get(i).getId() == cNuevo.getId()) {
-                clientes.set(i, cNuevo);
-                encontrado = true;
-                break;
+        if (usarBD) {
+            clienteDAODB.guardarCliente(cliente);
+        } else {
+            List<Cliente> lista = clienteDAO.leerClientes();
+            for (int i = 0; i < lista.size(); i++) {
+                if (lista.get(i).getId() == cliente.getId()) {
+                    lista.set(i, cliente);
+                    break;
+                }
             }
+            clienteDAO.guardarClientes(lista);
         }
 
-        if (!encontrado) {
-            System.out.println("⚠️ No se encontró ningún cliente con el ID especificado.");
-            return;
-        }
-
-        clienteDAO.guardarClientes(clientes);
-        System.out.println("✓ Cliente actualizado correctamente.");
+        System.out.println("✅ Cliente actualizado correctamente (ID " + cliente.getId() + ")");
     }
 
     public void eliminarCliente(int id) {
-        boolean eliminado = clientes.removeIf(c -> c.getId() == id);
-        if (eliminado) {
-            clienteDAO.guardarClientes(clientes);
-            System.out.println("✓ Cliente eliminado con éxito.");
+        Cliente existente = buscarClientePorId(id);
+        if (existente == null) {
+            System.err.println("❌ No existe un cliente con ID " + id);
+            return;
+        }
+
+        if (usarBD) {
+            clienteDAODB.eliminarCliente(id);
         } else {
-            System.out.println("⚠️ No se encontró el cliente con ID: " + id);
+            List<Cliente> lista = clienteDAO.leerClientes();
+            lista.removeIf(c -> c.getId() == id);
+            clienteDAO.guardarClientes(lista);
+        }
+
+        System.out.println("Cliente eliminado: " + existente.getNombre());
+    }
+
+    public Cliente buscarClientePorId(int id) {
+        if (usarBD) {
+            return clienteDAODB.buscarPorId(id);
+        } else {
+            return clienteDAO.leerClientes()
+                    .stream()
+                    .filter(c -> c.getId() == id)
+                    .findFirst()
+                    .orElse(null);
         }
     }
 
-    public void agregarVentaCliente(int idCliente, int idVenta) {
-        Cliente c = buscarPorId(idCliente);
-        if (c != null) {
-            c.agregarCompra(idVenta);
-            clienteDAO.guardarClientes(clientes);
-        } else {
-            System.out.println("⚠️ No se encontró el cliente con ID: " + idCliente);
+    private List<String> validarCliente(Cliente cliente, boolean esActualizacion) {
+        List<String> errores = new ArrayList<>();
+
+        if (cliente == null) {
+            errores.add("El cliente no puede ser nulo.");
+            return errores;
         }
-    }
 
-    public List<Cliente> listarClientesCSV() {
-        return clienteDAO.leerClientes();
-    }
+        if (esActualizacion && buscarClientePorId(cliente.getId()) == null) {
+            errores.add("No existe un cliente con el ID especificado (" + cliente.getId() + ").");
+        }
 
-    public List<Cliente> listarClientesDB() {
-        ClienteDAODB clienteDAODB = new ClienteDAODB();
-        return clienteDAODB.leerClientes();
-    }
+        if (cliente.getNombre() == null || cliente.getNombre().isBlank()) {
+            errores.add("El nombre del cliente no puede estar vacío.");
+        }
 
+        if (cliente.getDireccion() == null || cliente.getDireccion().isBlank()) {
+            errores.add("La dirección del cliente no puede estar vacía.");
+        }
+
+        if (!esActualizacion) {
+            boolean duplicado = listarClientes().stream()
+                    .anyMatch(c -> c.getNombre().equalsIgnoreCase(cliente.getNombre()));
+            if (duplicado) {
+                errores.add("Ya existe un cliente con el nombre '" + cliente.getNombre() + "'.");
+            }
+        }
+
+        return errores;
+    }
 }

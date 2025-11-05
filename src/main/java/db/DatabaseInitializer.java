@@ -12,7 +12,7 @@ public class DatabaseInitializer {
 
             String createProductosTable = """
                 CREATE TABLE IF NOT EXISTS productos (
-                    id INT PRIMARY KEY,
+                    id INT PRIMARY KEY AUTO_INCREMENT,
                     nombre VARCHAR(255) NOT NULL,
                     categoria VARCHAR(100),
                     precio DOUBLE NOT NULL,
@@ -24,7 +24,7 @@ public class DatabaseInitializer {
 
             String createClientesTable = """
                 CREATE TABLE IF NOT EXISTS clientes (
-                    id INT PRIMARY KEY,
+                    id INT PRIMARY KEY AUTO_INCREMENT,
                     nombre VARCHAR(255) NOT NULL,
                     direccion VARCHAR(500)
                 )
@@ -34,7 +34,7 @@ public class DatabaseInitializer {
 
             String createVentasTable = """
                 CREATE TABLE IF NOT EXISTS ventas (
-                    id INT PRIMARY KEY,
+                    id INT PRIMARY KEY AUTO_INCREMENT,
                     id_cliente INT NOT NULL,
                     fecha BIGINT NOT NULL,
                     total DOUBLE NOT NULL,

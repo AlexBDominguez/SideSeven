@@ -1,7 +1,10 @@
 package ui;
 
+import model.Cliente;
 import ventaService.ClienteService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class ClienteUI {
@@ -15,105 +18,84 @@ public class ClienteUI {
 
     public void mostrarMenu() {
         int opcion;
-
         do {
-            System.out.println("\n--- Clientes ---");
-            System.out.println("1. Listar");
-            System.out.println("2. Agregar");
-            System.out.println("3. Buscar por ID");
-            System.out.println("4. Actualizar");
-            System.out.println("5. Eliminar");
-            System.out.println("0. Volver");
+            System.out.println("\n=== GESTIÓN DE CLIENTES ===");
+            System.out.println("1. Listar clientes");
+            System.out.println("2. Agregar cliente");
+            System.out.println("3. Actualizar cliente");
+            System.out.println("4. Eliminar cliente");
+            System.out.println("0. Volver al menú principal");
             System.out.print("Elige una opción: ");
-            opcion = Integer.parseInt(scanner.nextLine());
+            opcion = leerEntero();
 
             switch (opcion) {
-                case 1 -> {
-                    System.out.println("\n¿Desde dónde quieres listar los clientes?");
-                    System.out.println("1. CSV");
-                    System.out.println("2. Base de Datos");
-                    System.out.print("Elige una opción: ");
-                    int fuente = leerEntero();
-
-                    if (fuente == 1) {
-                        var clientes = clienteService.listarClientesCSV();
-                        if (clientes.isEmpty()) System.out.println("No hay clientes en CSV.");
-                        else clientes.forEach(System.out::println);
-
-                    } else if (fuente == 2) {
-                        var clientes = clienteService.listarClientesDB();
-                        if (clientes.isEmpty()) System.out.println("No hay clientes en Base de Datos.");
-                        else clientes.forEach(System.out::println);
-
-                    } else {
-                        System.out.println("Opción no válida.");
-                    }
-                }
+                case 1 -> listarClientes();
                 case 2 -> agregarCliente();
-                case 3 -> buscarCliente();
-                case 4 -> actualizarCliente();
-                case 5 -> eliminarCliente();
+                case 3 -> actualizarCliente();
+                case 4 -> eliminarCliente();
+                case 0 -> System.out.println("Volviendo al menú principal...");
                 default -> System.out.println("Opción no válida.");
             }
-
         } while (opcion != 0);
+    }
 
+    private void listarClientes() {
+        List<Cliente> clientes = clienteService.listarClientes();
+        if (clientes.isEmpty()) {
+            System.out.println("No hay clientes registrados.");
+        } else {
+            System.out.println("\n--- LISTA DE CLIENTES ---");
+            clientes.forEach(System.out::println);
+        }
     }
 
     private void agregarCliente() {
-        System.out.print("Nombre: ");
+        System.out.print("Nombre del cliente: ");
         String nombre = scanner.nextLine();
         System.out.print("Dirección: ");
         String direccion = scanner.nextLine();
 
-        clienteService.agregarCliente(nombre, direccion);
-    }
-
-    private void buscarCliente() {
-        System.out.println("ID del cliente a buscar: ");
-        int id = Integer.parseInt(scanner.nextLine());
-        model.Cliente c = clienteService.buscarPorId(id);
-        if (c != null) {
-            System.out.println(c);
-        } else {
-            System.out.println("Cliente no encontrado.");
-        }
-
+        Cliente cliente = new Cliente(0, nombre, direccion);
+        clienteService.agregarCliente(cliente);
+        System.out.println("✅ Cliente agregado correctamente.");
     }
 
     private void actualizarCliente() {
-        System.out.println("ID del cliente a actualizar: ");
-        int id = Integer.parseInt(scanner.nextLine());
-        model.Cliente cExistente = clienteService.buscarPorId(id);
-        if (cExistente == null) {
-            System.out.println("Cliente no encontrado.");
+        System.out.print("ID del cliente a actualizar: ");
+        int id = leerEntero();
+        Cliente existente = clienteService.buscarClientePorId(id);
+
+        if (existente == null) {
+            System.out.println("❌ No se encontró el cliente con ID " + id);
             return;
         }
 
-        System.out.println("Cliente actual: " + cExistente);
-        System.out.print("Nuevo nombre (Enter para mantener): ");
+        System.out.print("Nuevo nombre (" + existente.getNombre() + "): ");
         String nombre = scanner.nextLine();
-        if (!nombre.isEmpty()) cExistente.setNombre(nombre);
+        if (nombre.isEmpty()) nombre = existente.getNombre();
 
-        System.out.print("Nueva dirección (Enter para mantener): ");
+        System.out.print("Nueva dirección (" + existente.getDireccion() + "): ");
         String direccion = scanner.nextLine();
-        if (!direccion.isEmpty()) cExistente.setDireccion(direccion);
+        if (direccion.isEmpty()) direccion = existente.getDireccion();
 
-        clienteService.actualizarCliente(cExistente);
-        System.out.println("Cliente actualizado.");
+        existente.setNombre(nombre);
+        existente.setDireccion(direccion);
+
+        clienteService.actualizarCliente(existente);
+        System.out.println("✅ Cliente actualizado correctamente.");
     }
 
     private void eliminarCliente() {
-        System.out.println("ID del cliente a eliminar: ");
-        int id = Integer.parseInt(scanner.nextLine());
+        System.out.print("ID del cliente a eliminar: ");
+        int id = leerEntero();
         clienteService.eliminarCliente(id);
-        System.out.println("Cliente eliminado.");
+        System.out.println("✅ Cliente eliminado correctamente (si existía).");
     }
 
     private int leerEntero() {
         while (true) {
             try {
-                return Integer.parseInt(scanner.nextLine());
+                return Integer.parseInt(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
                 System.out.print("Introduce un número válido: ");
             }

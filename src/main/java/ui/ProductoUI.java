@@ -2,6 +2,8 @@ package ui;
 
 import model.Producto;
 import ventaService.ProductoService;
+
+import java.util.List;
 import java.util.Scanner;
 
 public class ProductoUI {
@@ -9,122 +11,104 @@ public class ProductoUI {
     private final ProductoService productoService;
     private final Scanner scanner = new Scanner(System.in);
 
-    public ProductoUI(ProductoService productoService){
+    public ProductoUI(ProductoService productoService) {
         this.productoService = productoService;
     }
 
-    public void mostrarMenu(){
+    public void mostrarMenu() {
         int opcion;
-
-        do{
-            System.out.println("\n--- Productos ---");
-            System.out.println("1. Listar");
-            System.out.println("2. Agregar");
-            System.out.println("3. Buscar por ID");
-            System.out.println("4. Actualizar");
-            System.out.println("5. Eliminar");
-            System.out.println("0. Volver");
+        do {
+            System.out.println("\n=== GESTIÓN DE PRODUCTOS ===");
+            System.out.println("1. Listar productos");
+            System.out.println("2. Agregar producto");
+            System.out.println("3. Actualizar producto");
+            System.out.println("4. Eliminar producto");
+            System.out.println("0. Volver al menú principal");
             System.out.print("Elige una opción: ");
-            opcion = Integer.parseInt(scanner.nextLine());
+            opcion = leerEntero();
 
             switch (opcion) {
-                case 1 -> {
-                    System.out.println("\n¿Desde dónde quieres listar los productos?");
-                    System.out.println("1. CSV");
-                    System.out.println("2. Base de Datos");
-                    System.out.print("Elige una opción: ");
-
-                    int fuente = leerEntero();
-
-                    if (fuente == 1) {
-                        var productos = productoService.listarProductosCSV();
-                        if (productos.isEmpty()) System.out.println("No hay productos en CSV");
-                        else productos.forEach(System.out::println);
-
-                    } else if (fuente == 2) {
-                        var productos = productoService.listarProductosDB();
-                        if (productos.isEmpty()) System.out.println("No hay productos en Base de Datos");
-                        else productos.forEach(System.out::println);
-                    } else {
-                        System.out.println("Opción no válida.");
-
-                    }
-                }
+                case 1 -> listarProductos();
                 case 2 -> agregarProducto();
-                case 3 -> buscarProducto();
-                case 4 -> actualizarProducto();
-                case 5 -> eliminarProducto();
+                case 3 -> actualizarProducto();
+                case 4 -> eliminarProducto();
+                case 0 -> System.out.println("Volviendo al menú principal...");
+                default -> System.out.println("Opción no válida.");
             }
-
-        }while(opcion!=0);
-
+        } while (opcion != 0);
     }
 
-    private void agregarProducto(){
-        System.out.print("Nombre: ");
+    private void listarProductos() {
+        List<Producto> productos = productoService.listarProductos();
+        if (productos.isEmpty()) {
+            System.out.println("No hay productos registrados.");
+        } else {
+            System.out.println("\n--- LISTA DE PRODUCTOS ---");
+            productos.forEach(System.out::println);
+        }
+    }
+
+    private void agregarProducto() {
+        System.out.print("Nombre del producto: ");
         String nombre = scanner.nextLine();
-        System.out.print("Categoría (Manga/Comic/Rol/Figura): ");
+        System.out.print("Categoría: ");
         String categoria = scanner.nextLine();
         System.out.print("Precio: ");
         double precio = leerDouble();
         System.out.print("Stock: ");
         int stock = leerEntero();
 
-        productoService.agregarProducto(nombre, categoria, precio, stock);
-    }
-
-    private void buscarProducto() {
-        System.out.println("ID del producto a buscar: ");
-        int id = leerEntero();
-        Producto p = productoService.buscarPorId(id);
-        if (p != null) {
-            System.out.println(p);
-        } else {
-            System.out.println("No se encontró producto con ID: " + id);
-        }
-
+        Producto producto = new Producto(0, nombre, categoria, precio, stock);
+        productoService.agregarProducto(producto);
+        System.out.println("✅ Producto agregado correctamente.");
     }
 
     private void actualizarProducto() {
-        System.out.println("ID del producto a actualizar: ");
+        System.out.print("ID del producto a actualizar: ");
         int id = leerEntero();
-        Producto pExistente = productoService.buscarPorId(id);
-        if (pExistente == null) {
-            System.out.println("No se encontró producto con ID: " + id);
+        Producto existente = productoService.buscarProductoPorId(id);
+
+        if (existente == null) {
+            System.out.println("❌ No se encontró el producto con ID " + id);
             return;
         }
 
-        System.out.println("Producto actual: " + pExistente);
-        System.out.print("Nuevo nombre (Enter para mantener): ");
+        System.out.print("Nuevo nombre (" + existente.getNombre() + "): ");
         String nombre = scanner.nextLine();
-        if (!nombre.isEmpty()) pExistente.setNombre(nombre);
+        if (nombre.isEmpty()) nombre = existente.getNombre();
 
-        System.out.print("Nueva categoría (Enter para mantener): ");
+        System.out.print("Nueva categoría (" + existente.getCategoria() + "): ");
         String categoria = scanner.nextLine();
-        if (!categoria.isEmpty()) pExistente.setCategoria(categoria);
+        if (categoria.isEmpty()) categoria = existente.getCategoria();
 
-        System.out.print("Nuevo precio (0 para mantener): ");
-        double precio = leerDouble();
-        if (precio > 0) pExistente.setPrecio(precio);
+        System.out.print("Nuevo precio (" + existente.getPrecio() + "): ");
+        String precioStr = scanner.nextLine();
+        double precio = precioStr.isEmpty() ? existente.getPrecio() : Double.parseDouble(precioStr);
 
-        System.out.print("Nuevo stock (-1 para mantener): ");
-        int stock = leerEntero();
-        if (stock >= 0) pExistente.setStock(stock);
+        System.out.print("Nuevo stock (" + existente.getStock() + "): ");
+        String stockStr = scanner.nextLine();
+        int stock = stockStr.isEmpty() ? existente.getStock() : Integer.parseInt(stockStr);
 
-        productoService.actualizarProducto(pExistente);
-        System.out.println("Producto actualizado.");
+        existente.setNombre(nombre);
+        existente.setCategoria(categoria);
+        existente.setPrecio(precio);
+        existente.setStock(stock);
+
+        productoService.actualizarProducto(existente);
+        System.out.println("✅ Producto actualizado correctamente.");
     }
-    private void eliminarProducto () {
-        System.out.println("ID del producto a eliminar: ");
+
+    private void eliminarProducto() {
+        System.out.print("ID del producto a eliminar: ");
         int id = leerEntero();
         productoService.eliminarProducto(id);
-        System.out.println("Producto eliminado si existía.");
+        System.out.println("✅ Producto eliminado correctamente (si existía).");
     }
 
     private int leerEntero() {
         while (true) {
             try {
-                return Integer.parseInt(scanner.nextLine());
+                return Integer.parseInt(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
                 System.out.print("Introduce un número válido: ");
             }
@@ -134,12 +118,10 @@ public class ProductoUI {
     private double leerDouble() {
         while (true) {
             try {
-                return Double.parseDouble(scanner.nextLine());
+                return Double.parseDouble(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
                 System.out.print("Introduce un número válido: ");
             }
         }
     }
-
 }
-

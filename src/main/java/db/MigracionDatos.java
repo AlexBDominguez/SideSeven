@@ -7,58 +7,34 @@ import model.Cliente;
 import model.Producto;
 import model.Venta;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MigracionDatos {
+    private static final Map<Integer, Integer> mapeoProductos = new HashMap<>();
+    private static final Map<Integer, Integer> mapeoClientes = new HashMap<>();
+    private static final Map<Integer, Integer> mapeoVentas = new HashMap<>();
 
     public static void migrarDatos() throws Exception {
         System.out.println("\n=== INICIANDO MIGRACIÓN DE DATOS ===\n");
 
-        boolean exito = true;
-
         try {
-
             DatabaseInitializer.initializeDatabase();
-
         } catch (Exception e) {
             System.err.println("❌ Error al inicializar la base de datos: " + e.getMessage());
-            exito = false;
-            throw e; 
+            throw e;
         }
 
         try {
-
             migrarProductos();
-        } catch (Exception e) {
-            System.err.println("❌ Error al migrar productos: " + e.getMessage());
-            exito = false;
-        }
-
-        try {
-
             migrarClientes();
-        } catch (Exception e) {
-            System.err.println("❌ Error al migrar clientes: " + e.getMessage());
-            exito = false;
-        }
-
-        try {
-
             migrarVentas();
-        } catch (Exception e) {
-            System.err.println("❌ Error al migrar ventas: " + e.getMessage());
-            exito = false;
-        }
-
-        if (exito) {
             System.out.println("\n✓ MIGRACIÓN COMPLETADA EXITOSAMENTE\n");
-        } else {
-            System.out.println("\n❌ MIGRACIÓN COMPLETADA CON ERRORES\n");
-            System.out.println("Revisa los mensajes de error anteriores.");
-            throw new Exception("La migración no se completó correctamente");
+        } catch (Exception e) {
+            System.err.println("\n❌ MIGRACIÓN FALLIDA: " + e.getMessage() + "\n");
+            throw e;
         }
     }
 
@@ -67,30 +43,41 @@ public class MigracionDatos {
         ProductoDAO productoDAO = new ProductoDAO();
         List<Producto> productos = productoDAO.leerProductos();
 
-        String sql = "INSERT INTO productos (id, nombre, categoria, precio, stock) VALUES (?, ?, ?, ?, ?) " +
-                     "ON DUPLICATE KEY UPDATE nombre=?, categoria=?, precio=?, stock=?";
+        String checkSQL = "SELECT COUNT(*) FROM productos WHERE nombre = ? AND categoria = ?";
+        String insertSQL = "INSERT INTO productos (nombre, categoria, precio, stock) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement checkStmt = conn.prepareStatement(checkSQL);
+             PreparedStatement insertStmt = conn.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS)) {
 
+            conn.setAutoCommit(false);
             int count = 0;
+
             for (Producto p : productos) {
-                pstmt.setInt(1, p.getId());
-                pstmt.setString(2, p.getNombre());
-                pstmt.setString(3, p.getCategoria());
-                pstmt.setDouble(4, p.getPrecio());
-                pstmt.setInt(5, p.getStock());
+                checkStmt.setString(1, p.getNombre());
+                checkStmt.setString(2, p.getCategoria());
+                ResultSet rs = checkStmt.executeQuery();
+                rs.next();
+                if (rs.getInt(1) > 0) {
+                    continue;
+                }
 
-                pstmt.setString(6, p.getNombre());
-                pstmt.setString(7, p.getCategoria());
-                pstmt.setDouble(8, p.getPrecio());
-                pstmt.setInt(9, p.getStock());
+                insertStmt.setString(1, p.getNombre());
+                insertStmt.setString(2, p.getCategoria());
+                insertStmt.setDouble(3, p.getPrecio());
+                insertStmt.setInt(4, p.getStock());
+                insertStmt.executeUpdate();
 
-                pstmt.executeUpdate();
+                try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        mapeoProductos.put(p.getId(), generatedKeys.getInt(1));
+                    }
+                }
                 count++;
             }
 
-            System.out.println("✓ " + count + " productos migrados correctamente.");
+            conn.commit();
+            System.out.println("✓ " + count + " productos nuevos migrados correctamente.");
 
         } catch (SQLException e) {
             System.err.println("Error al migrar productos: " + e.getMessage());
@@ -103,39 +90,39 @@ public class MigracionDatos {
         ClienteDAO clienteDAO = new ClienteDAO();
         List<Cliente> clientes = clienteDAO.leerClientes();
 
-        String sqlCliente = "INSERT INTO clientes (id, nombre, direccion) VALUES (?, ?, ?) " +
-                           "ON DUPLICATE KEY UPDATE nombre=?, direccion=?";
-        String sqlHistorial = "INSERT IGNORE INTO historial_compras (id_cliente, id_venta) VALUES (?, ?)";
+        String checkSQL = "SELECT COUNT(*) FROM clientes WHERE nombre = ? AND direccion = ?";
+        String insertSQL = "INSERT INTO clientes (nombre, direccion) VALUES (?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmtCliente = conn.prepareStatement(sqlCliente);
-             PreparedStatement pstmtHistorial = conn.prepareStatement(sqlHistorial)) {
+             PreparedStatement checkStmt = conn.prepareStatement(checkSQL);
+             PreparedStatement insertStmt = conn.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS)) {
 
-            conn.setAutoCommit(false); 
-
+            conn.setAutoCommit(false);
             int count = 0;
+
             for (Cliente c : clientes) {
-
-                pstmtCliente.setInt(1, c.getId());
-                pstmtCliente.setString(2, c.getNombre());
-                pstmtCliente.setString(3, c.getDireccion());
-                pstmtCliente.setString(4, c.getNombre());
-                pstmtCliente.setString(5, c.getDireccion());
-                pstmtCliente.executeUpdate();
-
-                for (Integer idVenta : c.getHistorialCompras()) {
-                    pstmtHistorial.setInt(1, c.getId());
-                    pstmtHistorial.setInt(2, idVenta);
-                    pstmtHistorial.executeUpdate();
+                checkStmt.setString(1, c.getNombre());
+                checkStmt.setString(2, c.getDireccion());
+                ResultSet rs = checkStmt.executeQuery();
+                rs.next();
+                if (rs.getInt(1) > 0) {
+                    continue;
                 }
 
+                insertStmt.setString(1, c.getNombre());
+                insertStmt.setString(2, c.getDireccion());
+                insertStmt.executeUpdate();
+
+                try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        mapeoClientes.put(c.getId(), generatedKeys.getInt(1));
+                    }
+                }
                 count++;
             }
 
-            conn.commit(); 
-            conn.setAutoCommit(true);
-
-            System.out.println("✓ " + count + " clientes migrados correctamente.");
+            conn.commit();
+            System.out.println("✓ " + count + " clientes nuevos migrados correctamente.");
 
         } catch (SQLException e) {
             System.err.println("Error al migrar clientes: " + e.getMessage());
@@ -148,41 +135,66 @@ public class MigracionDatos {
         VentaDAO ventaDAO = new VentaDAO();
         List<Venta> ventas = ventaDAO.leerVentas();
 
-        String sqlVenta = "INSERT INTO ventas (id, id_cliente, fecha, total) VALUES (?, ?, ?, ?) " +
-                         "ON DUPLICATE KEY UPDATE id_cliente=?, fecha=?, total=?";
-        String sqlDetalle = "INSERT IGNORE INTO detalle_ventas (id_venta, id_producto) VALUES (?, ?)";
+        String checkSQL = "SELECT COUNT(*) FROM ventas WHERE id_cliente = ? AND fecha = ? AND total = ?";
+        String sqlVenta = "INSERT INTO ventas (id_cliente, fecha, total) VALUES (?, ?, ?)";
+        String sqlDetalle = "INSERT INTO detalle_ventas (id_venta, id_producto) VALUES (?, ?)";
+        String sqlHistorial = "INSERT INTO historial_compras (id_cliente, id_venta) VALUES (?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmtVenta = conn.prepareStatement(sqlVenta);
-             PreparedStatement pstmtDetalle = conn.prepareStatement(sqlDetalle)) {
+             PreparedStatement checkStmt = conn.prepareStatement(checkSQL);
+             PreparedStatement pstmtVenta = conn.prepareStatement(sqlVenta, Statement.RETURN_GENERATED_KEYS);
+             PreparedStatement pstmtDetalle = conn.prepareStatement(sqlDetalle);
+             PreparedStatement pstmtHistorial = conn.prepareStatement(sqlHistorial)) {
 
-            conn.setAutoCommit(false); 
-
+            conn.setAutoCommit(false);
             int count = 0;
-            for (Venta v : ventas) {
 
-                pstmtVenta.setInt(1, v.getId());
-                pstmtVenta.setInt(2, v.getIdCliente());
-                pstmtVenta.setLong(3, v.getFecha().getTime());
-                pstmtVenta.setDouble(4, v.getTotal());
-                pstmtVenta.setInt(5, v.getIdCliente());
-                pstmtVenta.setLong(6, v.getFecha().getTime());
-                pstmtVenta.setDouble(7, v.getTotal());
+            for (Venta v : ventas) {
+                Integer nuevoIdCliente = mapeoClientes.get(v.getIdCliente());
+                if (nuevoIdCliente == null) continue;
+
+                // Verificar si la venta ya existe
+                checkStmt.setInt(1, nuevoIdCliente);
+                checkStmt.setLong(2, v.getFecha().getTime());
+                checkStmt.setDouble(3, v.getTotal());
+                ResultSet checkRs = checkStmt.executeQuery();
+                checkRs.next();
+                if (checkRs.getInt(1) > 0) {
+                    continue;
+                }
+
+                pstmtVenta.setInt(1, nuevoIdCliente);
+                pstmtVenta.setLong(2, v.getFecha().getTime());
+                pstmtVenta.setDouble(3, v.getTotal());
                 pstmtVenta.executeUpdate();
 
-                for (Integer idProducto : v.getIdsProductos()) {
-                    pstmtDetalle.setInt(1, v.getId());
-                    pstmtDetalle.setInt(2, idProducto);
+                int nuevoIdVenta;
+                try (ResultSet generatedKeys = pstmtVenta.getGeneratedKeys()) {
+                    if (!generatedKeys.next()) {
+                        throw new SQLException("No se pudo obtener el ID de la venta insertada");
+                    }
+                    nuevoIdVenta = generatedKeys.getInt(1);
+                    mapeoVentas.put(v.getId(), nuevoIdVenta);
+                }
+
+                for (Integer idProductoAntiguo : v.getIdsProductos()) {
+                    Integer nuevoIdProducto = mapeoProductos.get(idProductoAntiguo);
+                    if (nuevoIdProducto == null) continue;
+
+                    pstmtDetalle.setInt(1, nuevoIdVenta);
+                    pstmtDetalle.setInt(2, nuevoIdProducto);
                     pstmtDetalle.executeUpdate();
                 }
+
+                pstmtHistorial.setInt(1, nuevoIdCliente);
+                pstmtHistorial.setInt(2, nuevoIdVenta);
+                pstmtHistorial.executeUpdate();
 
                 count++;
             }
 
-            conn.commit(); 
-            conn.setAutoCommit(true);
-
-            System.out.println("✓ " + count + " ventas migradas correctamente.");
+            conn.commit();
+            System.out.println("✓ " + count + " ventas nuevas migradas correctamente.");
 
         } catch (SQLException e) {
             System.err.println("Error al migrar ventas: " + e.getMessage());
