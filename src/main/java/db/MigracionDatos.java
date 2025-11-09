@@ -50,6 +50,7 @@ public class MigracionDatos {
              PreparedStatement checkStmt = conn.prepareStatement(checkSQL);
              PreparedStatement insertStmt = conn.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS)) {
 
+            //Para agrupar las inserciones en una sola transacción
             conn.setAutoCommit(false);
             int count = 0;
 
