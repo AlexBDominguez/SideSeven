@@ -3,17 +3,17 @@ package ui;
 import model.Cliente;
 import ventaService.ClienteService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class ClienteUI {
 
     private final ClienteService clienteService;
-    private final Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner;
 
-    public ClienteUI(ClienteService clienteService) {
+    public ClienteUI(ClienteService clienteService, Scanner scanner) {
         this.clienteService = clienteService;
+        this.scanner = scanner;
     }
 
     public void mostrarMenu() {
@@ -57,7 +57,6 @@ public class ClienteUI {
 
         Cliente cliente = new Cliente(0, nombre, direccion);
         clienteService.agregarCliente(cliente);
-        System.out.println("✅ Cliente agregado correctamente.");
     }
 
     private void actualizarCliente() {

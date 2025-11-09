@@ -9,10 +9,11 @@ import java.util.Scanner;
 public class ProductoUI {
 
     private final ProductoService productoService;
-    private final Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner;
 
-    public ProductoUI(ProductoService productoService) {
+    public ProductoUI(ProductoService productoService, Scanner scanner) {
         this.productoService = productoService;
+        this.scanner = scanner;
     }
 
     public void mostrarMenu() {
@@ -60,7 +61,6 @@ public class ProductoUI {
 
         Producto producto = new Producto(0, nombre, categoria, precio, stock);
         productoService.agregarProducto(producto);
-        System.out.println("✅ Producto agregado correctamente.");
     }
 
     private void actualizarProducto() {

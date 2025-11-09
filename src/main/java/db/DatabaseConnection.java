@@ -19,7 +19,6 @@ public class DatabaseConnection {
 
             if (connection == null || connection.isClosed()) {
                 connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                System.out.println("Conexión a la base de datos establecida correctamente.");
             }
             return connection;
         } catch (ClassNotFoundException e) {

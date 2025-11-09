@@ -11,10 +11,11 @@ import java.util.Scanner;
 public class VentaUI {
 
     private final VentaService ventaService;
-    private final Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner;
 
-    public VentaUI(VentaService ventaService) {
+    public VentaUI(VentaService ventaService, Scanner scanner) {
         this.ventaService = ventaService;
+        this.scanner = scanner;
     }
 
     public void mostrarMenu() {
@@ -65,7 +66,6 @@ public class VentaUI {
 
         Venta venta = new Venta(0, idCliente, new Date(), productos, total);
         ventaService.registrarVenta(venta);
-        System.out.println("✅ Venta registrada correctamente.");
     }
 
     private void eliminarVenta() {

@@ -12,15 +12,16 @@ import java.util.Scanner;
 
 public class consolaApp {
 
+    private final Scanner scanner = new Scanner(System.in);
+
     private final ProductoService productoService = new ProductoService();
     private final ClienteService clienteService = new ClienteService();
     private final VentaService ventaService = new VentaService(productoService, clienteService);
 
-    private final ProductoUI productoUI = new ProductoUI(productoService);
-    private final ClienteUI clienteUI = new ClienteUI(clienteService);
-    private final VentaUI ventaUI = new VentaUI(ventaService);
+    private final ProductoUI productoUI = new ProductoUI(productoService, scanner);
+    private final ClienteUI clienteUI = new ClienteUI(clienteService, scanner);
+    private final VentaUI ventaUI = new VentaUI(ventaService, scanner);
 
-    private final Scanner scanner = new Scanner(System.in);
     private boolean usarBD = false; // control global
 
     public void iniciar() {
@@ -49,6 +50,8 @@ public class consolaApp {
                 default -> System.out.println("Opción no válida.");
             }
         } while (opcion != 0);
+
+        scanner.close();
     }
 
     private void elegirFuenteDeDatos() {
@@ -69,7 +72,7 @@ public class consolaApp {
     private int leerEntero() {
         while (true) {
             try {
-                return Integer.parseInt(scanner.nextLine());
+                return Integer.parseInt(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
                 System.out.print("Introduce un número válido: ");
             }
