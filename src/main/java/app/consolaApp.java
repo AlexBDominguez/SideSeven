@@ -25,48 +25,79 @@ public class consolaApp {
     private boolean usarBD = false; // control global
 
     public void iniciar() {
-        elegirFuenteDeDatos();
+        System.out.println("¡Bienvenido a SideSeven, tu tienda de cómics, mangas, manuales de rol, figuras de acción y más!");
 
-        int opcion;
-        do {
-            System.out.println("\n=== SideSeven - Tienda Geek ===");
-            System.out.println("Fuente actual: " + (usarBD ? "Base de Datos" : "CSV"));
-            System.out.println("1. Gestión de Productos");
-            System.out.println("2. Gestión de Clientes");
-            System.out.println("3. Gestión de Ventas");
-            System.out.println("4. Cambiar Fuente de Datos");
-            System.out.println("5. Migrar Datos a Base de Datos (Fase 2)");
-            System.out.println("0. Salir");
-            System.out.print("Elige una opción: ");
-            opcion = leerEntero();
+        boolean salir = false;
 
-            switch (opcion) {
-                case 1 -> productoUI.mostrarMenu();
-                case 2 -> clienteUI.mostrarMenu();
-                case 3 -> ventaUI.mostrarMenu();
-                case 4 -> elegirFuenteDeDatos();
-                case 5 -> ejecutarMigracion();
-                case 0 -> System.out.println("¡Hasta luego!");
-                default -> System.out.println("Opción no válida.");
+        while (!salir) {
+            // Si el usuario elige salir, terminamos el programa
+            if (!elegirFuenteDeDatos()) {
+                salir = true;
+                System.out.println("¡Hasta luego!");
+                break;
             }
-        } while (opcion != 0);
+
+            int opcion;
+            do {
+                System.out.println("\n=== SideSeven - Tienda Geek ===");
+                System.out.println("Fuente actual: " + (usarBD ? "Base de Datos" : "CSV"));
+                System.out.println("1. Gestión de Productos");
+                System.out.println("2. Gestión de Clientes");
+                System.out.println("3. Gestión de Ventas");
+                System.out.println("4. Cambiar Fuente de Datos");
+                System.out.println("5. Migrar Datos a Base de Datos (Fase 2)");
+                System.out.println("0. Volver a elegir fuente de datos");
+                System.out.print("Elige una opción: ");
+                opcion = leerEntero();
+
+                switch (opcion) {
+                    case 1 -> productoUI.mostrarMenu();
+                    case 2 -> clienteUI.mostrarMenu();
+                    case 3 -> ventaUI.mostrarMenu();
+                    case 4 -> elegirFuenteDeDatos();
+                    case 5 -> ejecutarMigracion();
+                    case 0 -> System.out.println("Volviendo al menú de selección de fuente...");
+                    default -> System.out.println("Opción no válida.");
+                }
+            } while (opcion != 0);
+        }
 
         scanner.close();
     }
 
-    private void elegirFuenteDeDatos() {
+    private boolean elegirFuenteDeDatos() {
         System.out.println("\n¿Con qué fuente de datos deseas trabajar?");
         System.out.println("1. CSV");
         System.out.println("2. Base de Datos");
+        System.out.println("0. Salir del programa");
         System.out.print("Elige una opción: ");
         int fuente = leerEntero();
 
-        usarBD = (fuente == 2);
-        productoService.setUsarBD(usarBD);
-        clienteService.setUsarBD(usarBD);
-        ventaService.setUsarBD(usarBD);
-
-        System.out.println("Fuente seleccionada: " + (usarBD ? "Base de Datos" : "CSV"));
+        switch (fuente) {
+            case 1 -> {
+                usarBD = false;
+                productoService.setUsarBD(false);
+                clienteService.setUsarBD(false);
+                ventaService.setUsarBD(false);
+                System.out.println("Fuente seleccionada: CSV");
+                return true;
+            }
+            case 2 -> {
+                usarBD = true;
+                productoService.setUsarBD(true);
+                clienteService.setUsarBD(true);
+                ventaService.setUsarBD(true);
+                System.out.println("Fuente seleccionada: Base de Datos");
+                return true;
+            }
+            case 0 -> {
+                return false; // indica al método iniciar() que debe salir del programa
+            }
+            default -> {
+                System.out.println("Opción no válida.");
+                return elegirFuenteDeDatos(); // vuelve a preguntar hasta que elija bien
+            }
+        }
     }
 
     private int leerEntero() {

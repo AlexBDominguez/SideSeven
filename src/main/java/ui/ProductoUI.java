@@ -95,14 +95,12 @@ public class ProductoUI {
         existente.setStock(stock);
 
         productoService.actualizarProducto(existente);
-        System.out.println("✅ Producto actualizado correctamente.");
     }
 
     private void eliminarProducto() {
         System.out.print("ID del producto a eliminar: ");
         int id = leerEntero();
         productoService.eliminarProducto(id);
-        System.out.println("✅ Producto eliminado correctamente (si existía).");
     }
 
     private int leerEntero() {

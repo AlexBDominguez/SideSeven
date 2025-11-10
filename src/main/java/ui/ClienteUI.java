@@ -81,14 +81,12 @@ public class ClienteUI {
         existente.setDireccion(direccion);
 
         clienteService.actualizarCliente(existente);
-        System.out.println("✅ Cliente actualizado correctamente.");
     }
 
     private void eliminarCliente() {
         System.out.print("ID del cliente a eliminar: ");
         int id = leerEntero();
         clienteService.eliminarCliente(id);
-        System.out.println("✅ Cliente eliminado correctamente (si existía).");
     }
 
     private int leerEntero() {

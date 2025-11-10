@@ -72,7 +72,6 @@ public class VentaUI {
         System.out.print("ID de la venta a eliminar: ");
         int id = leerEntero();
         ventaService.eliminarVenta(id);
-        System.out.println("✅ Venta eliminada correctamente (si existía).");
     }
 
     private int leerEntero() {
