@@ -19,13 +19,10 @@ public class ClienteDAODB {
 
             while (rs.next()) {
                 Cliente c = new Cliente(
-                    rs.getInt("id"),
-                    rs.getString("nombre"),
-                    rs.getString("direccion")
+                        rs.getInt("id"),
+                        rs.getString("nombre"),
+                        rs.getString("direccion")
                 );
-
-                List<Integer> historial = cargarHistorialCompras(c.getId());
-                c.setHistorialCompras(historial);
 
                 lista.add(c);
             }
@@ -37,30 +34,9 @@ public class ClienteDAODB {
         return lista;
     }
 
-    private List<Integer> cargarHistorialCompras(int idCliente) {
-        List<Integer> historial = new ArrayList<>();
-        String sql = "SELECT id_venta FROM historial_compras WHERE id_cliente = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, idCliente);
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                historial.add(rs.getInt("id_venta"));
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error al cargar historial de compras: " + e.getMessage());
-        }
-
-        return historial;
-    }
-
     public void guardarCliente(Cliente c) {
         String sql = "INSERT INTO clientes (id, nombre, direccion) VALUES (?, ?, ?) " +
-                     "ON DUPLICATE KEY UPDATE nombre=?, direccion=?";
+                "ON DUPLICATE KEY UPDATE nombre=?, direccion=?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -108,16 +84,11 @@ public class ClienteDAODB {
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                Cliente c = new Cliente(
-                    rs.getInt("id"),
-                    rs.getString("nombre"),
-                    rs.getString("direccion")
+                return new Cliente(
+                        rs.getInt("id"),
+                        rs.getString("nombre"),
+                        rs.getString("direccion")
                 );
-
-                List<Integer> historial = cargarHistorialCompras(c.getId());
-                c.setHistorialCompras(historial);
-
-                return c;
             }
 
         } catch (SQLException e) {
@@ -125,20 +96,5 @@ public class ClienteDAODB {
         }
 
         return null;
-    }
-
-    public void agregarVentaCliente(int idCliente, int idVenta) {
-        String sql = "INSERT IGNORE INTO historial_compras (id_cliente, id_venta) VALUES (?, ?)";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, idCliente);
-            pstmt.setInt(2, idVenta);
-            pstmt.executeUpdate();
-
-        } catch (SQLException e) {
-            System.err.println("Error al agregar venta al historial: " + e.getMessage());
-        }
     }
 }

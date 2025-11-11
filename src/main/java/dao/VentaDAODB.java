@@ -19,16 +19,12 @@ public class VentaDAODB {
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                int idVenta = rs.getInt("id");
-
-                List<Integer> idsProductos = cargarProductosVenta(idVenta);
-
                 Venta v = new Venta(
-                    idVenta,
-                    rs.getInt("id_cliente"),
-                    new Date(rs.getLong("fecha")),
-                    idsProductos,
-                    rs.getDouble("total")
+                        rs.getInt("id"),
+                        rs.getInt("id_cliente"),
+                        rs.getInt("id_producto"),
+                        new Date(rs.getLong("fecha")),
+                        rs.getDouble("total")
                 );
                 lista.add(v);
             }
@@ -40,81 +36,27 @@ public class VentaDAODB {
         return lista;
     }
 
-    private List<Integer> cargarProductosVenta(int idVenta) {
-        List<Integer> idsProductos = new ArrayList<>();
-        String sql = "SELECT id_producto FROM detalle_ventas WHERE id_venta = ?";
+    public void guardarVenta(Venta v) {
+        String sql = "INSERT INTO ventas (id_cliente, id_producto, fecha, total) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            pstmt.setInt(1, idVenta);
-            ResultSet rs = pstmt.executeQuery();
+            pstmt.setInt(1, v.getIdCliente());
+            pstmt.setInt(2, v.getIdProducto());
+            pstmt.setLong(3, v.getFecha().getTime());
+            pstmt.setDouble(4, v.getTotal());
+            pstmt.executeUpdate();
 
-            while (rs.next()) {
-                idsProductos.add(rs.getInt("id_producto"));
+            ResultSet keys = pstmt.getGeneratedKeys();
+            if (keys.next()) {
+                v.setId(keys.getInt(1));
             }
 
-        } catch (SQLException e) {
-            System.err.println("Error al cargar productos de venta: " + e.getMessage());
-        }
-
-        return idsProductos;
-    }
-
-    public void guardarVenta(Venta v) {
-        Connection conn = null;
-        try {
-            conn = DatabaseConnection.getConnection();
-            conn.setAutoCommit(false); 
-
-            String sqlVenta = "INSERT INTO ventas (id, id_cliente, fecha, total) VALUES (?, ?, ?, ?) " +
-                             "ON DUPLICATE KEY UPDATE id_cliente=?, fecha=?, total=?";
-            try (PreparedStatement pstmt = conn.prepareStatement(sqlVenta)) {
-                pstmt.setInt(1, v.getId());
-                pstmt.setInt(2, v.getIdCliente());
-                pstmt.setLong(3, v.getFecha().getTime());
-                pstmt.setDouble(4, v.getTotal());
-                pstmt.setInt(5, v.getIdCliente());
-                pstmt.setLong(6, v.getFecha().getTime());
-                pstmt.setDouble(7, v.getTotal());
-                pstmt.executeUpdate();
-            }
-
-            String sqlDeleteDetalle = "DELETE FROM detalle_ventas WHERE id_venta = ?";
-            try (PreparedStatement pstmt = conn.prepareStatement(sqlDeleteDetalle)) {
-                pstmt.setInt(1, v.getId());
-                pstmt.executeUpdate();
-            }
-
-            String sqlDetalle = "INSERT INTO detalle_ventas (id_venta, id_producto) VALUES (?, ?)";
-            try (PreparedStatement pstmt = conn.prepareStatement(sqlDetalle)) {
-                for (Integer idProducto : v.getIdsProductos()) {
-                    pstmt.setInt(1, v.getId());
-                    pstmt.setInt(2, idProducto);
-                    pstmt.executeUpdate();
-                }
-            }
-
-            conn.commit(); 
+            System.out.println("✅ Venta guardada correctamente (ID: " + v.getId() + ")");
 
         } catch (SQLException e) {
             System.err.println("Error al guardar venta en BD: " + e.getMessage());
-            if (conn != null) {
-                try {
-                    conn.rollback(); 
-                    System.out.println("Transacción revertida.");
-                } catch (SQLException ex) {
-                    System.err.println("Error al revertir transacción: " + ex.getMessage());
-                }
-            }
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true);
-                } catch (SQLException e) {
-                    System.err.println("Error al restaurar autocommit: " + e.getMessage());
-                }
-            }
         }
     }
 
@@ -128,21 +70,38 @@ public class VentaDAODB {
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                List<Integer> idsProductos = cargarProductosVenta(id);
-
                 return new Venta(
-                    rs.getInt("id"),
-                    rs.getInt("id_cliente"),
-                    new Date(rs.getLong("fecha")),
-                    idsProductos,
-                    rs.getDouble("total")
+                        rs.getInt("id"),
+                        rs.getInt("id_cliente"),
+                        rs.getInt("id_producto"),
+                        new Date(rs.getLong("fecha")),
+                        rs.getDouble("total")
                 );
             }
 
         } catch (SQLException e) {
-            System.err.println("Error al buscar venta en BD: " + e.getMessage());
+            System.err.println("Error al buscar venta: " + e.getMessage());
         }
 
         return null;
+    }
+
+    public void eliminarVenta(int id) {
+        String sql = "DELETE FROM ventas WHERE id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, id);
+            int filas = pstmt.executeUpdate();
+
+            if (filas > 0)
+                System.out.println("Venta eliminada (ID " + id + ")");
+            else
+                System.out.println("No se encontró la venta con ID " + id);
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar venta: " + e.getMessage());
+        }
     }
 }

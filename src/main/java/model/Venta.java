@@ -2,21 +2,20 @@ package model;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 public class Venta implements Serializable {
 
     private int id;
     private int idCliente;
+    private int idProducto;
     private Date fecha;
-    private List<Integer> idsProductos;
     private double total;
 
-    public Venta(int id, int idCliente, Date fecha, List<Integer> idsProductos, double total) {
+    public Venta(int id, int idCliente, int idProducto, Date fecha, double total) {
         this.id = id;
         this.idCliente = idCliente;
+        this.idProducto = idProducto;
         this.fecha = fecha;
-        this.idsProductos = idsProductos;
         this.total = total;
     }
 
@@ -36,20 +35,20 @@ public class Venta implements Serializable {
         this.idCliente = idCliente;
     }
 
+    public int getIdProducto() {
+        return idProducto;
+    }
+
+    public void setIdProducto(int idProducto) {
+        this.idProducto = idProducto;
+    }
+
     public Date getFecha() {
         return fecha;
     }
 
     public void setFecha(Date fecha) {
         this.fecha = fecha;
-    }
-
-    public List<Integer> getIdsProductos() {
-        return idsProductos;
-    }
-
-    public void setIdsProductos(List<Integer> idsProductos) {
-        this.idsProductos = idsProductos;
     }
 
     public double getTotal() {
@@ -63,7 +62,7 @@ public class Venta implements Serializable {
     @Override
     public String toString() {
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
-        return String.format("[Venta #%d] Cliente ID: %d | Fecha: %s | Productos: %s | Total: %.2f€",
-                id, idCliente, sdf.format(fecha), idsProductos, total);
+        return String.format("[Venta #%d] Cliente ID: %d | Producto ID: %d | Fecha: %s | Total: %.2f€",
+                id, idCliente, idProducto, sdf.format(fecha), total);
     }
 }

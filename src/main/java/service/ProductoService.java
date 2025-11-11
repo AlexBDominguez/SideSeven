@@ -1,4 +1,4 @@
-package ventaService;
+package service;
 
 import dao.ProductoDAO;
 import dao.ProductoDAODB;

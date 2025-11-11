@@ -1,4 +1,4 @@
-package ventaService;
+package service;
 
 import dao.VentaDAO;
 import dao.VentaDAODB;
@@ -92,14 +92,8 @@ public class VentaService {
             errores.add("El cliente con ID " + venta.getIdCliente() + " no existe.");
         }
 
-        if (venta.getIdsProductos() == null || venta.getIdsProductos().isEmpty()) {
-            errores.add("La venta debe incluir al menos un producto.");
-        } else {
-            for (int idProd : venta.getIdsProductos()) {
-                if (productoService.buscarProductoPorId(idProd) == null) {
-                    errores.add("El producto con ID " + idProd + " no existe.");
-                }
-            }
+        if (productoService.buscarProductoPorId(venta.getIdProducto()) == null) {
+            errores.add("El producto con ID " + venta.getIdProducto() + " no existe.");
         }
 
         if (venta.getTotal() <= 0) {
@@ -108,4 +102,5 @@ public class VentaService {
 
         return errores;
     }
+
 }

@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.Map;
 
 public class MigracionDatos {
+
     private static final Map<Integer, Integer> mapeoProductos = new HashMap<>();
     private static final Map<Integer, Integer> mapeoClientes = new HashMap<>();
-    private static final Map<Integer, Integer> mapeoVentas = new HashMap<>();
 
     public static void migrarDatos() throws Exception {
         System.out.println("\n=== INICIANDO MIGRACIÓN DE DATOS ===\n");
@@ -50,7 +50,6 @@ public class MigracionDatos {
              PreparedStatement checkStmt = conn.prepareStatement(checkSQL);
              PreparedStatement insertStmt = conn.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS)) {
 
-            //Para agrupar las inserciones en una sola transacción
             conn.setAutoCommit(false);
             int count = 0;
 
@@ -59,9 +58,8 @@ public class MigracionDatos {
                 checkStmt.setString(2, p.getCategoria());
                 ResultSet rs = checkStmt.executeQuery();
                 rs.next();
-                if (rs.getInt(1) > 0) {
-                    continue;
-                }
+
+                if (rs.getInt(1) > 0) continue;
 
                 insertStmt.setString(1, p.getNombre());
                 insertStmt.setString(2, p.getCategoria());
@@ -74,6 +72,7 @@ public class MigracionDatos {
                         mapeoProductos.put(p.getId(), generatedKeys.getInt(1));
                     }
                 }
+
                 count++;
             }
 
@@ -106,9 +105,8 @@ public class MigracionDatos {
                 checkStmt.setString(2, c.getDireccion());
                 ResultSet rs = checkStmt.executeQuery();
                 rs.next();
-                if (rs.getInt(1) > 0) {
-                    continue;
-                }
+
+                if (rs.getInt(1) > 0) continue;
 
                 insertStmt.setString(1, c.getNombre());
                 insertStmt.setString(2, c.getDireccion());
@@ -119,6 +117,7 @@ public class MigracionDatos {
                         mapeoClientes.put(c.getId(), generatedKeys.getInt(1));
                     }
                 }
+
                 count++;
             }
 
@@ -136,60 +135,34 @@ public class MigracionDatos {
         VentaDAO ventaDAO = new VentaDAO();
         List<Venta> ventas = ventaDAO.leerVentas();
 
-        String checkSQL = "SELECT COUNT(*) FROM ventas WHERE id_cliente = ? AND fecha = ? AND total = ?";
-        String sqlVenta = "INSERT INTO ventas (id_cliente, fecha, total) VALUES (?, ?, ?)";
-        String sqlDetalle = "INSERT INTO detalle_ventas (id_venta, id_producto) VALUES (?, ?)";
-        String sqlHistorial = "INSERT INTO historial_compras (id_cliente, id_venta) VALUES (?, ?)";
+        String checkSQL = "SELECT COUNT(*) FROM ventas WHERE id_cliente = ? AND id_producto = ? AND fecha = ? AND total = ?";
+        String insertSQL = "INSERT INTO ventas (id_cliente, id_producto, fecha, total) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement checkStmt = conn.prepareStatement(checkSQL);
-             PreparedStatement pstmtVenta = conn.prepareStatement(sqlVenta, Statement.RETURN_GENERATED_KEYS);
-             PreparedStatement pstmtDetalle = conn.prepareStatement(sqlDetalle);
-             PreparedStatement pstmtHistorial = conn.prepareStatement(sqlHistorial)) {
+             PreparedStatement insertStmt = conn.prepareStatement(insertSQL)) {
 
             conn.setAutoCommit(false);
             int count = 0;
 
             for (Venta v : ventas) {
                 Integer nuevoIdCliente = mapeoClientes.get(v.getIdCliente());
-                if (nuevoIdCliente == null) continue;
+                Integer nuevoIdProducto = mapeoProductos.get(v.getIdProducto());
+                if (nuevoIdCliente == null || nuevoIdProducto == null) continue;
 
-                // Verificar si la venta ya existe
                 checkStmt.setInt(1, nuevoIdCliente);
-                checkStmt.setLong(2, v.getFecha().getTime());
-                checkStmt.setDouble(3, v.getTotal());
-                ResultSet checkRs = checkStmt.executeQuery();
-                checkRs.next();
-                if (checkRs.getInt(1) > 0) {
-                    continue;
-                }
+                checkStmt.setInt(2, nuevoIdProducto);
+                checkStmt.setLong(3, v.getFecha().getTime());
+                checkStmt.setDouble(4, v.getTotal());
+                ResultSet rs = checkStmt.executeQuery();
+                rs.next();
+                if (rs.getInt(1) > 0) continue;
 
-                pstmtVenta.setInt(1, nuevoIdCliente);
-                pstmtVenta.setLong(2, v.getFecha().getTime());
-                pstmtVenta.setDouble(3, v.getTotal());
-                pstmtVenta.executeUpdate();
-
-                int nuevoIdVenta;
-                try (ResultSet generatedKeys = pstmtVenta.getGeneratedKeys()) {
-                    if (!generatedKeys.next()) {
-                        throw new SQLException("No se pudo obtener el ID de la venta insertada");
-                    }
-                    nuevoIdVenta = generatedKeys.getInt(1);
-                    mapeoVentas.put(v.getId(), nuevoIdVenta);
-                }
-
-                for (Integer idProductoAntiguo : v.getIdsProductos()) {
-                    Integer nuevoIdProducto = mapeoProductos.get(idProductoAntiguo);
-                    if (nuevoIdProducto == null) continue;
-
-                    pstmtDetalle.setInt(1, nuevoIdVenta);
-                    pstmtDetalle.setInt(2, nuevoIdProducto);
-                    pstmtDetalle.executeUpdate();
-                }
-
-                pstmtHistorial.setInt(1, nuevoIdCliente);
-                pstmtHistorial.setInt(2, nuevoIdVenta);
-                pstmtHistorial.executeUpdate();
+                insertStmt.setInt(1, nuevoIdCliente);
+                insertStmt.setInt(2, nuevoIdProducto);
+                insertStmt.setLong(3, v.getFecha().getTime());
+                insertStmt.setDouble(4, v.getTotal());
+                insertStmt.executeUpdate();
 
                 count++;
             }

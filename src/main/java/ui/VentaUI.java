@@ -1,9 +1,8 @@
 package ui;
 
 import model.Venta;
-import ventaService.VentaService;
+import service.VentaService;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -53,20 +52,16 @@ public class VentaUI {
         System.out.print("ID del cliente: ");
         int idCliente = leerEntero();
 
-        List<Integer> productos = new ArrayList<>();
-        System.out.println("Introduce los IDs de los productos (0 para finalizar):");
-        while (true) {
-            int idProd = leerEntero();
-            if (idProd == 0) break;
-            productos.add(idProd);
-        }
+        System.out.print("ID del producto: ");
+        int idProducto = leerEntero();
 
         System.out.print("Total de la venta (€): ");
         double total = leerDouble();
 
-        Venta venta = new Venta(0, idCliente, new Date(), productos, total);
+        Venta venta = new Venta(0, idCliente, idProducto, new Date(), total);
         ventaService.registrarVenta(venta);
     }
+
 
     private void eliminarVenta() {
         System.out.print("ID de la venta a eliminar: ");

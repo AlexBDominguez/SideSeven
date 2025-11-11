@@ -1,7 +1,7 @@
 package ui;
 
 import model.Producto;
-import ventaService.ProductoService;
+import service.ProductoService;
 
 import java.util.List;
 import java.util.Scanner;
