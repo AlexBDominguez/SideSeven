@@ -11,7 +11,6 @@ public class VentaService {
 
     private final VentaDAO ventaDAO = new VentaDAO();
     private final VentaDAODB ventaDAODB = new VentaDAODB();
-
     private final ProductoService productoService;
     private final ClienteService clienteService;
 
