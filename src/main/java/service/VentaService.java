@@ -58,7 +58,8 @@ public class VentaService {
         }
 
         if (usarBD) {
-            System.err.println("⚠️ Eliminar venta no implementado en BD aún.");
+            ventaDAODB.eliminarVenta(id);
+
         } else {
             List<Venta> lista = ventaDAO.leerVentas();
             lista.removeIf(v -> v.getId() == id);
