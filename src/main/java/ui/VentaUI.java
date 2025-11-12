@@ -1,8 +1,13 @@
 package ui;
 
+import model.Cliente;
+import model.Producto;
 import model.Venta;
+import service.ClienteService;
+import service.ProductoService;
 import service.VentaService;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -10,10 +15,14 @@ import java.util.Scanner;
 public class VentaUI {
 
     private final VentaService ventaService;
+    private final ClienteService clienteService;
+    private final ProductoService productoService;
     private final Scanner scanner;
 
-    public VentaUI(VentaService ventaService, Scanner scanner) {
+    public VentaUI(VentaService ventaService, ClienteService clienteService, ProductoService productoService, Scanner scanner) {
         this.ventaService = ventaService;
+        this.clienteService = clienteService;
+        this.productoService = productoService;
         this.scanner = scanner;
     }
 
@@ -42,9 +51,25 @@ public class VentaUI {
         List<Venta> ventas = ventaService.listarVentas();
         if (ventas.isEmpty()) {
             System.out.println("No hay ventas registradas.");
-        } else {
-            System.out.println("\n--- LISTA DE VENTAS ---");
-            ventas.forEach(System.out::println);
+            return;
+        }
+
+        System.out.println("\n--- LISTA DE VENTAS ---");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+
+        for (Venta v : ventas) {
+            Cliente cliente = clienteService.buscarClientePorId(v.getIdCliente());
+            Producto producto = productoService.buscarProductoPorId(v.getIdProducto());
+
+            String nombreCliente = (cliente != null) ? cliente.getNombre() : "Desconocido";
+            String nombreProducto = (producto != null) ? producto.getNombre() : "Desconocido";
+
+            System.out.printf("[Venta #%d] Cliente: %s | Producto: %s | Fecha: %s | Total: %.2f€%n",
+                    v.getId(),
+                    nombreCliente,
+                    nombreProducto,
+                    sdf.format(v.getFecha()),
+                    v.getTotal());
         }
     }
 
@@ -61,7 +86,6 @@ public class VentaUI {
         Venta venta = new Venta(0, idCliente, idProducto, new Date(), total);
         ventaService.registrarVenta(venta);
     }
-
 
     private void eliminarVenta() {
         System.out.print("ID de la venta a eliminar: ");

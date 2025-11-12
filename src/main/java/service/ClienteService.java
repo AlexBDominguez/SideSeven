@@ -35,12 +35,17 @@ public class ClienteService {
             clienteDAODB.guardarCliente(cliente);
         } else {
             List<Cliente> lista = clienteDAO.leerClientes();
+
+            int nuevoId = lista.isEmpty() ? 1 : lista.getLast().getId() + 1;
+            cliente.setId(nuevoId);
+
             lista.add(cliente);
             clienteDAO.guardarClientes(lista);
         }
 
         System.out.println("✅ Cliente agregado correctamente: " + cliente.getNombre());
     }
+
 
     public void actualizarCliente(Cliente cliente) {
         List<String> errores = validarCliente(cliente, true);

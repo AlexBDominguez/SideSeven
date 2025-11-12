@@ -35,12 +35,17 @@ public class ProductoService {
             productoDAODB.guardarProducto(producto);
         } else {
             List<Producto> lista = productoDAO.leerProductos();
+
+            int nuevoId = lista.isEmpty() ? 1 : lista.getLast().getId() + 1;
+            producto.setId(nuevoId);
+
             lista.add(producto);
             productoDAO.guardarProductos(lista);
         }
 
         System.out.println("✅ Producto agregado correctamente: " + producto.getNombre());
     }
+
 
     public void actualizarProducto(Producto producto) {
         List<String> errores = validarProducto(producto, true);

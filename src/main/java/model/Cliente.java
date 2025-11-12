@@ -27,11 +27,6 @@ public class Cliente implements Serializable {
     public String getDireccion() { return direccion; }
     public void setDireccion(String direccion) { this.direccion = direccion; }
 
-    public List<Integer> getHistorialCompras() { return historialCompras; }
-    public void setHistorialCompras(List<Integer> historialCompras) { this.historialCompras = historialCompras; }
-
-    public void agregarCompra(int idVenta) { historialCompras.add(idVenta); }
-
     @Override
     public String toString() {
         String compras = historialCompras.isEmpty() ? "Sin compras" : "Compras: " + historialCompras;

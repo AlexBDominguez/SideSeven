@@ -42,12 +42,17 @@ public class VentaService {
             ventaDAODB.guardarVenta(venta);
         } else {
             List<Venta> lista = ventaDAO.leerVentas();
+
+            int nuevoId = lista.isEmpty() ? 1 : lista.getLast().getId() + 1;
+            venta.setId(nuevoId);
+
             lista.add(venta);
             ventaDAO.guardarVentas(lista);
         }
 
         System.out.println("✅ Venta registrada correctamente (Cliente ID: " + venta.getIdCliente() + ")");
     }
+
 
     public void eliminarVenta(int id) {
         Venta existente = buscarVentaPorId(id);

@@ -20,7 +20,7 @@ public class consolaApp {
 
     private final ProductoUI productoUI = new ProductoUI(productoService, scanner);
     private final ClienteUI clienteUI = new ClienteUI(clienteService, scanner);
-    private final VentaUI ventaUI = new VentaUI(ventaService, scanner);
+    private final VentaUI ventaUI = new VentaUI(ventaService, clienteService, productoService, scanner);
 
     private boolean usarBD = false; // control global
 
